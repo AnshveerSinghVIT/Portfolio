@@ -190,7 +190,7 @@ function InteractiveImage({ url, position, scale }) {
       <Float speed={2} rotationIntensity={0.1} floatIntensity={0.5}>
         <group ref={ref}>
           <DreiImage url={url} scale={scale} transparent />
-          <mesh position={[0, 0, -0.05]} scale={[scale[0] + 0.1, scale[1] + 0.1, 0.05]}><boxGeometry /><meshStandardMaterial color="#ffffff" /></mesh>
+          <mesh position={[0, 0.01, -0.05]} scale={[scale[0] + 0.3, scale[1] + 0.3, 0.05]}><boxGeometry /><meshStandardMaterial color="#ffffff" /></mesh>
         </group>
       </Float>
     </group>
@@ -200,9 +200,9 @@ function InteractiveImage({ url, position, scale }) {
 function IntroTextGroup({ isMobile, align }) {
   return (
     <group>
-      <Text position={isMobile ? [0, 0.2, 0] : [-0.3, 0.4, 0]} fontSize={isMobile ? 0.1 : 0.25} color="#36454F" anchorX={align} anchorY="bottom" fontWeight={600}>Hi, I am</Text>
-      <Text position={isMobile ? [0, 0, 0] : [-0.4, 0, 0]} fontSize={isMobile ? 0.225 : 0.7} color="#1e293b" anchorX={align} anchorY="middle" letterSpacing={-0.05} fontWeight={900} maxWidth={isMobile ? 0.220 : 8} textAlign={align} lineHeight={1}>ANSHVEER SINGH</Text>
-      <Text position={isMobile ? [0, -0.25, 0] : [-0.4, -0.5, 0]} fontSize={isMobile ? 0.09 : 0.18} color="#64748b" anchorX={align} anchorY="top" letterSpacing={0.05} fontWeight={600} maxWidth={isMobile ? 1 : 6} textAlign={align}>COMPUTER SCIENCE & ENGINEERING @VIT,Vellore</Text>
+      <Text position={isMobile ? [0, 0.4, 0] : [-0.3, -0.2, 0]} fontSize={isMobile ? 0.1 : 0.25} color="#36454F" anchorX={align} anchorY="bottom" fontWeight={600}>Hi, I am</Text>
+      <Text position={isMobile ? [0, 0.2, 0] : [-0.4, -0.5, 0]} fontSize={isMobile ? 0.225 : 0.7} color="#1e293b" anchorX={align} anchorY="middle" letterSpacing={-0.05} fontWeight={900} maxWidth={isMobile ? 0.220 : 8} textAlign={align} lineHeight={1}>ANSHVEER SINGH</Text>
+      <Text position={isMobile ? [0, 0, 0] : [-0.4, -0.8, 0]} fontSize={isMobile ? 0.09 : 0.18} color="#64748b" anchorX={align} anchorY="top" letterSpacing={0.05} fontWeight={600} maxWidth={isMobile ? 1 : 6} textAlign={align}>COMPUTER SCIENCE & ENGINEERING @VIT,Vellore</Text>
     </group>
   );
 }
@@ -258,10 +258,10 @@ function CloudTag({ text, color, position, isMobile }) {
 
 function IntroZone() {
   const isMobile = useMobile();
-  const layout = isMobile ? { photoPos: [0, 0, -2.5], photoScale: [2, 2], textPos: [0, -0.9, 0], textAlign: "center" }
-    : { photoPos: [1.0, 0.5, -1.5], photoScale: [3.2, 3.2], textPos: [-2.5, -0.5, 0], textAlign: "left" };
+  const layout = isMobile ? { photoPos: [0, 0, -2.5], photoScale: [2.35, 2.35], textPos: [0, -0.9, 0], textAlign: "center" }
+    : { photoPos: [1.0, 0.37, -1.5], photoScale: [3.2, 3.2], textPos: [-2.5, -0.5, 0], textAlign: "left" };
   return (
-    <group position={[0, 0, 0]}>
+    <group position={[0, 0.2, 0]}>
       <group position={layout.textPos}>
         <Float speed={1.5} rotationIntensity={0.1} floatIntensity={0.2}><IntroTextGroup isMobile={isMobile} align={layout.textAlign} /></Float>
       </group>
