@@ -4,6 +4,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
+  metadataBase: new URL('https://anshveersingh.vercel.app'),
   title: "Anshveer Singh | Portfolio",
   description: "Computer Science Engineer & Full Stack Developer specializing in Next.js, AI/ML, and 3D Web Experiences.",
   // Verification for Google Console
