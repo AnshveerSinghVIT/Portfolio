@@ -4,14 +4,22 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  metadataBase: new URL('https://anshveersingh.vercel.app'),
+  // 1. Single, correct metadataBase pointing to your new domain
+  metadataBase: new URL('https://anshveersingh.in'),
   title: "Anshveer Singh | Portfolio",
   description: "Computer Science Engineer & Full Stack Developer specializing in Next.js, AI/ML, and 3D Web Experiences.",
+  
+  // 2. Canonical tag ensures Google ignores the old vercel.app link
+  alternates: {
+    canonical: '/',
+  },
+
   // Verification for Google Console
   verification: {
     google: "1ba373CS3xnI5qUCFtb9udYOybsMHxriHarRen4Ng20",
   },
-  // Add keywords here
+
+  // 3. Your complete keyword list (with "Artificial" spelling fixed)
   keywords: [
     "Anshveer Singh",
     "Portfolio",
@@ -31,20 +39,21 @@ export const metadata = {
     "Bengaluru",
     "Karnataka",
     "Machine Learning",
-    "Artifical Intelligence",
+    "Artificial Intelligence", 
     "Engineer"
   ],
-  // Optional: Add OpenGraph for better sharing on LinkedIn/Twitter
+
+  // 4. OpenGraph updated to point to the new .in domain
   openGraph: {
     title: "Anshveer Singh | Portfolio",
     description: "Computer Science Engineer & Full Stack Developer",
-    url: "https://anshveersingh.vercel.app",
+    url: "https://anshveersingh.in", 
     siteName: "Anshveer Singh Portfolio",
     images: [
       {
-        url: "/profile.jpg", // Ensure this image exists in your public folder
-        width: 800,
-        height: 600,
+        url: "/profile.jpg", 
+        width: 1200, // Standardized for best display on LinkedIn/Twitter
+        height: 630, // Standardized for best display on LinkedIn/Twitter
       },
     ],
     locale: "en_US",
