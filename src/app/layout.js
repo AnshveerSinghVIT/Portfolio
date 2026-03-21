@@ -4,12 +4,12 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  // 1. Single, correct metadataBase pointing to your new domain
-  metadataBase: new URL('https://anshveersingh.in'),
+  // 1. Set the Base to your permanent Vercel link
+  metadataBase: new URL('https://anshveersingh.vercel.app'),
   title: "Anshveer Singh | Portfolio",
   description: "Computer Science Engineer & Full Stack Developer specializing in Next.js, AI/ML, and 3D Web Experiences.",
   
-  // 2. Canonical tag ensures Google ignores the old vercel.app link
+  // 2. This tells Google that the Vercel version is the master copy
   alternates: {
     canonical: '/',
   },
@@ -19,7 +19,7 @@ export const metadata = {
     google: "1ba373CS3xnI5qUCFtb9udYOybsMHxriHarRen4Ng20",
   },
 
-  // 3. Your complete keyword list (with "Artificial" spelling fixed)
+  // 3. Your keywords remain untouched
   keywords: [
     "Anshveer Singh",
     "Portfolio",
@@ -43,17 +43,17 @@ export const metadata = {
     "Engineer"
   ],
 
-  // 4. OpenGraph updated to point to the new .in domain
+  // 4. OpenGraph updated to Vercel so your link previews stay safe long-term
   openGraph: {
     title: "Anshveer Singh | Portfolio",
     description: "Computer Science Engineer & Full Stack Developer",
-    url: "https://anshveersingh.in", 
+    url: "https://anshveersingh.vercel.app", 
     siteName: "Anshveer Singh Portfolio",
     images: [
       {
         url: "/profile.jpg", 
-        width: 1200, // Standardized for best display on LinkedIn/Twitter
-        height: 630, // Standardized for best display on LinkedIn/Twitter
+        width: 1200, 
+        height: 630, 
       },
     ],
     locale: "en_US",
