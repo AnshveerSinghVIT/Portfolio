@@ -16,15 +16,26 @@ export default function BackgroundAnimation() {
 
     // 2. Load Images
     const loadImages = () => {
+      // Initialize the array
       for (let i = 0; i < frameCount; i++) {
-        const img = new Image();
-        img.src = `/frames/frame_${(i + 1).toString().padStart(3, '0')}.webp`;
-        images.current.push(img);
-        // Render first frame immediately when loaded
-        if (i === 0) {
-            img.onload = () => renderFrame(0);
-        }
+        images.current.push(null);
       }
+
+      // Load first frame immediately so the background isn't blank
+      const img0 = new Image();
+      img0.src = `/frames/frame_001.webp`;
+      img0.onload = () => renderFrame(0);
+      images.current[0] = img0;
+
+      // Lazy load the rest after a delay to unblock the browser network queue
+      // This allows the critical 3D profile textures to download first!
+      setTimeout(() => {
+        for (let i = 1; i < frameCount; i++) {
+          const img = new Image();
+          img.src = `/frames/frame_${(i + 1).toString().padStart(3, '0')}.webp`;
+          images.current[i] = img;
+        }
+      }, 1500);
     };
 
     // 3. The Drawing Logic

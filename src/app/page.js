@@ -1,5 +1,6 @@
 import Experience from '@/components/Experience';
 import BackgroundAnimation from '@/components/BackgroundAnimation';
+import SmartAIChatWrapper from '@/components/SmartAIChatWrapper';
 
 export default function Home() {
   return (
@@ -10,6 +11,8 @@ export default function Home() {
       <section className="relative z-10">
         <Experience />
       </section>
+      
+      <SmartAIChatWrapper />
 
       {/* --- SEO LAYER (For Robots) --- 
           Hidden from view, but readable by search engines. 
@@ -62,6 +65,11 @@ export default function Home() {
         {/* EXPERIENCE */}
         <section>
           <h3>Professional Experience</h3>
+          <article>
+            <h4>Undergraduate Intern - Dell Technologies</h4>
+            <p>Starts June 2025</p>
+            <p>Secured from on-campus testing and interviews.</p>
+          </article>
           <article>
             <h4>Machine Learning Developer Intern - Smartbridge (Google Partner)</h4>
             <p>May 2025 - June 2025</p>

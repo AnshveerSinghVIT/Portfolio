@@ -51,7 +51,7 @@ export const metadata = {
     siteName: "Anshveer Singh Portfolio",
     images: [
       {
-        url: "/profile.jpg", 
+        url: "/profile1.jpg", 
         width: 1200, 
         height: 630, 
       },

@@ -1,9 +1,9 @@
 'use client';
 
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { useScroll, ScrollControls, Image as DreiImage, Text, ContactShadows, Stars, Float, RoundedBox, Instance, Instances, Html } from '@react-three/drei';
+import { useScroll, ScrollControls, Image as DreiImage, Text, ContactShadows, Stars, Float, RoundedBox, Instance, Instances, Html, useTexture, Loader } from '@react-three/drei';
 import * as THREE from 'three';
-import { useRef, useState, useMemo } from 'react';
+import { useRef, useState, useMemo, useEffect, Suspense } from 'react';
 
 // --- 1. RESPONSIVE HOOK ---
 const useMobile = () => {
@@ -155,11 +155,11 @@ const Button3D = ({ text, subtext, icon, url, position, color, width = 3 }) => {
         <RoundedBox args={[width, 0.8, 0.1]} radius={0.4} bevelSegments={4}>
           <meshStandardMaterial color={hovered ? color : "#f1f5f9"} />
         </RoundedBox>
-        {icon && <Text position={[-width / 2 + 0.6, 0.05, 0.06]} fontSize={0.3} color={hovered ? "#ffffff" : color}>{icon}</Text>}
-        <Text position={[icon ? 0.1 : 0, 0.08, 0.06]} fontSize={0.25} color={hovered ? "#ffffff" : "#334155"} fontWeight={800} anchorX="center">
+        {icon && <Text font="/font.ttf" position={[-width / 2 + 0.6, 0.05, 0.06]} fontSize={0.3} color={hovered ? "#ffffff" : color}>{icon}</Text>}
+        <Text font="/font.ttf" position={[icon ? 0.1 : 0, 0.08, 0.06]} fontSize={0.25} color={hovered ? "#ffffff" : "#334155"} fontWeight={800} anchorX="center">
           {text}
         </Text>
-        {subtext && <Text position={[0, -0.6, 0]} fontSize={0.12} color="#94a3b8" anchorX="center">{subtext}</Text>}
+        {subtext && <Text font="/font.ttf" position={[0, -0.6, 0]} fontSize={0.12} color="#94a3b8" anchorX="center">{subtext}</Text>}
       </group>
     </group>
   );
@@ -168,12 +168,12 @@ const Button3D = ({ text, subtext, icon, url, position, color, width = 3 }) => {
 function BadgeLink({ text, url, position, color }) {
   const [hovered, setHover] = useState(false);
   return (
-    <Text position={position} fontSize={0.2} color={hovered ? "#3b82f6" : color} fontWeight={700} anchorX="center"
+    <Text font="/font.ttf" position={position} fontSize={0.2} color={hovered ? "#3b82f6" : color} fontWeight={700} anchorX="center"
       onPointerOver={() => { setHover(true); document.body.style.cursor = 'pointer'; }}
       onPointerOut={() => { setHover(false); document.body.style.cursor = 'auto'; }}
       onClick={() => window.open(url, '_blank')}
     >
-      {text} {hovered ? "↗" : ""}
+      {text} {hovered ? "->" : ""}
     </Text>
   );
 }
@@ -197,12 +197,55 @@ function InteractiveImage({ url, position, scale }) {
   );
 }
 
+function LenticularProfile({ position, scale }) {
+  const groupRef = useRef();
+  const img1 = useRef();
+  const img2 = useRef();
+  const img3 = useRef();
+  const img4 = useRef();
+
+  useFrame((state) => {
+    if (!groupRef.current) return;
+
+    // Smooth physical card tilt
+    groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, -state.mouse.y * 0.15, 0.1);
+    groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, state.mouse.x * 0.2, 0.1);
+
+    // Calculate which image to show based on X rotation/mouse
+    const x = state.mouse.x;
+    const t1 = x < -0.3 ? 1 : 0;
+    const t2 = (x >= -0.3 && x < 0) ? 1 : 0;
+    const t3 = (x >= 0 && x < 0.3) ? 1 : 0;
+    const t4 = x >= 0.3 ? 1 : 0;
+
+    // Smooth fade between lenticular frames
+    if (img1.current?.material) img1.current.material.opacity = THREE.MathUtils.lerp(img1.current.material.opacity, t1, 0.2);
+    if (img2.current?.material) img2.current.material.opacity = THREE.MathUtils.lerp(img2.current.material.opacity, t2, 0.2);
+    if (img3.current?.material) img3.current.material.opacity = THREE.MathUtils.lerp(img3.current.material.opacity, t3, 0.2);
+    if (img4.current?.material) img4.current.material.opacity = THREE.MathUtils.lerp(img4.current.material.opacity, t4, 0.2);
+  });
+
+  return (
+    <group position={position}>
+      <Float speed={2} rotationIntensity={0.1} floatIntensity={0.5}>
+        <group ref={groupRef}>
+          <DreiImage ref={img1} url="/profile1.jpg" scale={scale} transparent />
+          <DreiImage ref={img2} url="/profile2.jpg" scale={scale} transparent position={[0, 0, 0.001]} />
+          <DreiImage ref={img3} url="/profile3.jpg" scale={scale} transparent position={[0, 0, 0.002]} />
+          <DreiImage ref={img4} url="/profile4.jpg" scale={scale} transparent position={[0, 0, 0.003]} />
+          <mesh position={[0, 0.01, -0.05]} scale={[scale[0] + 0.3, scale[1] + 0.3, 0.05]}><boxGeometry /><meshStandardMaterial color="#ffffff" /></mesh>
+        </group>
+      </Float>
+    </group>
+  );
+}
+
 function IntroTextGroup({ isMobile, align }) {
   return (
     <group>
-      <Text position={isMobile ? [0, 0.4, 0] : [-0.3, -0.2, 0]} fontSize={isMobile ? 0.1 : 0.25} color="#36454F" anchorX={align} anchorY="bottom" fontWeight={600}>Hi, I am</Text>
-      <Text position={isMobile ? [0, 0.2, 0] : [-0.4, -0.5, 0]} fontSize={isMobile ? 0.225 : 0.7} color="#1e293b" anchorX={align} anchorY="middle" letterSpacing={-0.05} fontWeight={900} maxWidth={isMobile ? 0.220 : 8} textAlign={align} lineHeight={1}>ANSHVEER SINGH</Text>
-      <Text position={isMobile ? [0, 0, 0] : [-0.4, -0.8, 0]} fontSize={isMobile ? 0.09 : 0.18} color="#64748b" anchorX={align} anchorY="top" letterSpacing={0.05} fontWeight={600} maxWidth={isMobile ? 1 : 6} textAlign={align}>COMPUTER SCIENCE & ENGINEERING @VIT,Vellore</Text>
+      <Text font="/font.ttf" position={isMobile ? [0, 0.5, 0] : [-0.3, -0.2, 0]} fontSize={isMobile ? 0.1 : 0.25} color="#36454F" anchorX={align} anchorY="bottom" fontWeight={600}>Hi, I am</Text>
+      <Text font="/font.ttf" position={isMobile ? [0, 0.3, 0] : [-0.4, -0.5, 0]} fontSize={isMobile ? 0.225 : 0.7} color="#1e293b" anchorX={align} anchorY="middle" letterSpacing={-0.05} fontWeight={900} maxWidth={isMobile ? 0.220 : 8} textAlign={align} lineHeight={1}>ANSHVEER SINGH</Text>
+      <Text font="/font.ttf" position={isMobile ? [0, 0.1, 0] : [-0.4, -0.8, 0]} fontSize={isMobile ? 0.09 : 0.18} color="#64748b" anchorX={align} anchorY="top" letterSpacing={0.05} fontWeight={600} maxWidth={isMobile ? 1 : 6} textAlign={align}>COMPUTER SCIENCE & ENGINEERING @VIT,Vellore</Text>
     </group>
   );
 }
@@ -239,6 +282,7 @@ function CloudTag({ text, color, position, isMobile }) {
       </RoundedBox>
 
       <Text
+        font="/font.ttf"
         position={[0, 0, 0.06]}
         fontSize={0.9}
         color={textColor}
@@ -258,14 +302,14 @@ function CloudTag({ text, color, position, isMobile }) {
 
 function IntroZone() {
   const isMobile = useMobile();
-  const layout = isMobile ? { photoPos: [0, 0, -2.5], photoScale: [2.35, 2.35], textPos: [0, -0.9, 0], textAlign: "center" }
+  const layout = isMobile ? { photoPos: [0, 0.3, -2.5], photoScale: [2.35, 2.35], textPos: [0, -0.9, 0], textAlign: "center" }
     : { photoPos: [1.0, 0.37, -1.5], photoScale: [3.2, 3.2], textPos: [-2.5, -0.5, 0], textAlign: "left" };
   return (
     <group position={[0, 0.2, 0]}>
       <group position={layout.textPos}>
         <Float speed={1.5} rotationIntensity={0.1} floatIntensity={0.2}><IntroTextGroup isMobile={isMobile} align={layout.textAlign} /></Float>
       </group>
-      <InteractiveImage url="/profile.jpg" position={layout.photoPos} scale={layout.photoScale} />
+      <LenticularProfile position={layout.photoPos} scale={layout.photoScale} />
     </group>
   );
 }
@@ -313,6 +357,7 @@ function TechZone() {
   return (
     <group position={[0, 0, zoneZ]}>
       <Text
+        font="/font.ttf"
         text="TECHNICAL ARSENAL"
         position={[0, isMobile ? 10 : 6.5, 0]} /* Moved Title Up */
         fontSize={0.6}
@@ -395,6 +440,7 @@ function ProjectsZone() {
 
             {/* TEXT: Added outlineWidth to make it pop even more */}
             <Text
+              font="/font.ttf"
               position={[0, imgUrl ? -0.3 : 0.4, 0.1]}
               fontSize={isMobile ? 0.25 : 0.35}
               color={hovered ? color : "#1e293b"}
@@ -408,11 +454,11 @@ function ProjectsZone() {
               {title}
             </Text>
 
-            <Text position={[0, imgUrl ? -0.7 : 0, 0.1]} fontSize={isMobile ? 0.15 : 0.18} color="#475569" fontWeight={600} anchorX="center">
+            <Text font="/font.ttf" position={[0, imgUrl ? -0.7 : 0, 0.1]} fontSize={isMobile ? 0.15 : 0.18} color="#475569" fontWeight={600} anchorX="center">
               {subTitle}
             </Text>
 
-            <Text position={[0, imgUrl ? -1.0 : -0.3, 0.1]} fontSize={0.14} color={color} fontWeight={700} anchorX="center" letterSpacing={0.05}>
+            <Text font="/font.ttf" position={[0, imgUrl ? -1.0 : -0.3, 0.1]} fontSize={0.14} color={color} fontWeight={700} anchorX="center" letterSpacing={0.05}>
               {tech}
             </Text>
           </group>
@@ -422,10 +468,10 @@ function ProjectsZone() {
   };
   return (
     <group position={[0, 0, zoneZ]}>
-      <Text position={[0, isMobile ? 5.5 : 4, 0]} fontSize={isMobile ? 0.45 : 0.6} color="#334155" fontWeight={900} anchorX="center">ENGINEERING PROJECTS</Text>
-      <ProjectCard title="MENTAL HEALTH" subTitle="Diagnostic Classifier" tech="MACHINE LEARNING • FLASK" url="https://github.com/AnshveerSinghVIT/Mental_Health_Prediction_ML_Project" color="#7c3aed" position={[0, isMobile ? 3.0 : 2, 0]} scale={[0, 0]} />
-      <ProjectCard title="REALPRO NEXUS" subTitle="E-commerce" tech="NEXT.JS • SUPABASE" url="https://lemon-iota.vercel.app" imgUrl="/lemon.png" color="#eab308" position={isMobile ? [0, -0.5, 0] : [-4, -2, 0]} scale={isMobile ? [2.5, 1.4] : [3.5, 2]} />
-      <ProjectCard title="VALL SOCIAL" subTitle="Campus Social" tech="REACT • MONGODB" url="https://vmedia.onrender.com/" imgUrl="/vall.png" color="#3b82f6" scale={isMobile ? [2.5, 1.4] : [3.5, 2]} position={isMobile ? [0, -4.5, 0] : [4, -2, 0]} />
+      <Text font="/font.ttf" position={[0, isMobile ? 5.5 : 4, 0]} fontSize={isMobile ? 0.45 : 0.6} color="#334155" fontWeight={900} anchorX="center">ENGINEERING PROJECTS</Text>
+      <ProjectCard title="MENTAL HEALTH" subTitle="Diagnostic Classifier" tech="MACHINE LEARNING | FLASK" url="https://github.com/AnshveerSinghVIT/Mental_Health_Prediction_ML_Project" color="#7c3aed" position={[0, isMobile ? 3.0 : 2, 0]} scale={[0, 0]} />
+      <ProjectCard title="REALPRO NEXUS" subTitle="E-commerce" tech="NEXT.JS | SUPABASE" url="https://lemon-iota.vercel.app" imgUrl="/lemon.png" color="#eab308" position={isMobile ? [0, -0.5, 0] : [-4, -2, 0]} scale={isMobile ? [2.5, 1.4] : [3.5, 2]} />
+      <ProjectCard title="VALL SOCIAL" subTitle="Campus Social" tech="REACT | MONGODB" url="https://vmedia.onrender.com/" imgUrl="/vall.png" color="#3b82f6" scale={isMobile ? [2.5, 1.4] : [3.5, 2]} position={isMobile ? [0, -4.5, 0] : [4, -2, 0]} />
     </group>
   );
 }
@@ -435,17 +481,32 @@ function ExperienceZone() {
   const zoneZ = -165;
   return (
     <group position={[0, 0, zoneZ]}>
-      <Text position={[0, isMobile ? 5.5 : 3.5, 0]} fontSize={isMobile ? 0.5 : 0.6} color="#334155" fontWeight={900} anchorX="center">EXPERIENCE</Text>
-      <GlassPanel width={isMobile ? 3.5 : 8} height={isMobile ? 6 : 4} position={[0, 0, -0.1]} />
+      <Text font="/font.ttf" position={[0, isMobile ? 6.5 : 4.5, 0]} fontSize={isMobile ? 0.5 : 0.6} color="#334155" fontWeight={900} anchorX="center">EXPERIENCE</Text>
+      <GlassPanel width={isMobile ? 3.8 : 10.5} height={isMobile ? 9.5 : 8.5} position={[0, 0, -0.1]} />
+
+      {/* DELL EXPERIENCE */}
+      <Float speed={1.2} rotationIntensity={0.05} floatIntensity={0.1}>
+        <group position={isMobile ? [-0.01, 1.5, 0] : [0, 2.0, 0]}>
+          <InteractiveImage url="/dell.jpg" position={isMobile ? [0, 1.5, 0] : [-2.5, 0, 0]} scale={isMobile ? [2.5, 1.5] : [3.5, 2.1]} />
+
+          <group position={isMobile ? [1.2, -0.8, 0] : [1, -0.5, 0]}>
+            <Text font="/font.ttf" position={isMobile?[-1.2, 1, 0.7]:[-1.2, 1, 0.7]} fontSize={isMobile ?0.4 : 0.6} color="#0672cb" fontWeight={800} anchorX={isMobile ? "center" : "left"} maxWidth={isMobile ? 3.5 : 5} textAlign={isMobile ? "center" : "left"}>Dell Technologies</Text>
+            <Text font="/font.ttf" position={isMobile?[-1.2, 0.2, 0.5]:[-1.2, 0, 0.5]} fontSize={isMobile ? 0.16 : 0.2} color="#475569" fontWeight={600} anchorX={isMobile ? "center" : "left"} maxWidth={isMobile ? 3 : 5} textAlign={isMobile ? "center" : "left"}>Undergraduate Intern | Starts June 2025</Text>
+            <Text font="/font.ttf" position={isMobile?[-1.2, -0.1, 0.5]:[-1.2, -0.4, 0.5]} fontSize={isMobile ? 0.14 : 0.2} color="#64748b" anchorX={isMobile ? "center" : "left"} maxWidth={isMobile ? 3.5 : 5} textAlign={isMobile ? "center" : "left"} lineHeight={1.4}>Secured from on-campus testing and interviews</Text>
+          </group>
+        </group>
+      </Float>
+
+      {/* SMARTBRIDGE EXPERIENCE */}
       <Float speed={1.5} rotationIntensity={0.1} floatIntensity={0.2}>
-        <group position={[0, 0.5, 0]}>
-          <Text position={[0, 1.5, 0]} fontSize={isMobile ? 0.3 : 0.45} color="#0f172a" fontWeight={800} anchorX="center" maxWidth={isMobile ? 3 : 6} textAlign="center">Smartbridge in partnership with Google</Text>
-          <Text position={isMobile ? [0, -0.3, 0] : [0, 0.8, 0]} fontSize={0.2} color="#475569" fontWeight={600} maxWidth={isMobile ? 3 : 5} textAlign="center">Machine Learning Development • May - June 2025</Text>
-          <Text position={isMobile ? [0, -5, 0] : [0, -0.2, 0]} fontSize={isMobile ? 0.18 : 0.3} color="#64748b" maxWidth={isMobile ? 3 : 5} textAlign="center" lineHeight={1.4}>Developed Mental Health Prediction Models using Vertex AI</Text>
-          <group position={[0, -1.5, 0]}>
-            <BadgeLink text="View Internship Cert" url="https://skillwallet.smartinternz.com/internships/google_developers/d0e7b521c18b09876cb7693e42880dba" color="#2563eb" position={isMobile ? [0, 0.5, 0] : [-2, 0, 0]} />
-            <BadgeLink text="Credly Badges" url="https://www.credly.com/users/anshveer-singh-23bce0703/badges#credly" color="#ca8a04" position={[0, 0, 0]} />
-            <BadgeLink text="Google Skills" url="https://www.skills.google/public_profiles/a0bfdad5-777c-4017-8384-8199118381ff" color="#16a34a" position={isMobile ? [0, -0.5, 0] : [2, 0, 0]} />
+        <group position={isMobile ? [0, -2, 0] : [0, -1.8, 0]}>
+          <Text font="/font.ttf" position={[0, 1.5, 0]} fontSize={isMobile ? 0.3 : 0.45} color="#0f172a" fontWeight={800} anchorX="center" maxWidth={isMobile ? 3.5 : 6} textAlign="center">Smartbridge in partnership with Google</Text>
+          <Text font="/font.ttf" position={isMobile ? [0, 0.3, 0] : [0, 0.6, 0]} fontSize={0.2} color="#475569" fontWeight={600} maxWidth={isMobile ? 3.5 : 5} textAlign="center">Machine Learning Development | May - June 2025</Text>
+          <Text font="/font.ttf" position={isMobile ? [0, -0.3, 0] : [0, -0.2, 0]} fontSize={isMobile ? 0.18 : 0.3} color="#64748b" maxWidth={isMobile ? 3.5 : 5} textAlign="center" lineHeight={1.4}>Developed Mental Health Prediction Models using Vertex AI</Text>
+          <group position={isMobile ? [0, -1.2, 0] : [0, -1.5, 0]}>
+            <BadgeLink text="View Internship Cert" url="https://skillwallet.smartinternz.com/internships/google_developers/d0e7b521c18b09876cb7693e42880dba" color="#2563eb" position={isMobile ? [0, 0.3, 0] : [-2, 0, 0]} />
+            <BadgeLink text="Credly Badges" url="https://www.credly.com/users/anshveer-singh-23bce0703/badges#credly" color="#ca8a04" position={isMobile ? [0, -0.3, 0] : [0, 0, 0]} />
+            <BadgeLink text="Google Skills" url="https://www.skills.google/public_profiles/a0bfdad5-777c-4017-8384-8199118381ff" color="#16a34a" position={isMobile ? [0, -0.0, 0] : [2, 0, 0]} />
           </group>
         </group>
       </Float>
@@ -459,16 +520,15 @@ function ContactZone() {
   return (
     <group position={[0, 0, zoneZ]}>
       <group position={[0, 0, -2]}><ConfettiParticles count={150} /></group>
-      <Text position={[0, isMobile ? 5.5 : 4.5, 0]} fontSize={0.6} color="#334155" fontWeight={900} anchorX="center">GET IN TOUCH</Text>
+      <Text font="/font.ttf" position={[0, isMobile ? 5.5 : 4.5, 0]} fontSize={0.6} color="#334155" fontWeight={900} anchorX="center">GET IN TOUCH</Text>
       <Float speed={3} rotationIntensity={0.1} floatIntensity={0.5}>
-        <Button3D text="DOWNLOAD RESUME" subtext="PDF Format" icon="📄" url="https://drive.google.com/file/d/17Pp8wXhmL6BGtctHEXfqwqHOK5MEcSo4/view" color="#ea580c" position={[0, isMobile ? 2.5 : 1.5, 0]} width={isMobile ? 3.5 : 4.2} />
+        <Button3D text="DOWNLOAD RESUME" subtext="PDF Format" url="https://drive.google.com/file/d/17Pp8wXhmL6BGtctHEXfqwqHOK5MEcSo4/view" color="#ea580c" position={[0, isMobile ? 2.5 : 1.5, 0]} width={isMobile ? 3.5 : 4.2} />
       </Float>
       <group position={[0, -1.0, 0]}>
         {/* --- ROW 1: SOCIALS & EMAIL --- */}
         <Button3D
           text="LinkedIn"
-          icon="💼"
-          url="https://www.linkedin.com/in/anshveer-singh-3523b728b/"
+          url="https://www.linkedin.com/in/anshveer-singh/"
           color="#0a66c2"
           // Desktop: Left | Mobile: Top
           position={isMobile ? [0, 1.5, 0] : [-3.8, 0.5, 0]}
@@ -477,7 +537,6 @@ function ContactZone() {
 
         <Button3D
           text="Email"
-          icon="✉️"
           url="mailto:singhanshveer73@gmail.com"
           color="#ef4444"
           // Desktop: Center | Mobile: 2nd
@@ -487,7 +546,6 @@ function ContactZone() {
 
         <Button3D
           text="Github"
-          icon="🔥"
           url="https://github.com/AnshveerSinghVIT/"
           color="#171515" /* GitHub Black */
           // Desktop: Right | Mobile: 3rd
@@ -498,7 +556,6 @@ function ContactZone() {
         {/* --- ROW 2: PERSONAL INFO --- */}
         <Button3D
           text="Phone"
-          icon="📞"
           url="tel:+917795478003"
           color="#22c55e"
           // Desktop: Bottom Left-ish | Mobile: 4th
@@ -509,7 +566,6 @@ function ContactZone() {
         <Button3D
           text="Bengaluru"
           subtext="Location"
-          icon="📍"
           color="#db2777"
           url="https://www.google.com/maps/place/Bengaluru,+Karnataka"
           // Desktop: Bottom Right-ish | Mobile: Bottom
@@ -518,17 +574,46 @@ function ContactZone() {
         />
       </group>
       <Float speed={2} rotationIntensity={0.1}>
-        <Text position={[0, isMobile ? -5.5 : -4.5, 0]} fontSize={0.4} color="#3b82f6" fontWeight={800} anchorX="center">Thank You!</Text>
-        <Text position={[0, isMobile ? -6.0 : -5.0, 0]} fontSize={0.12} color="#cbd5e1" anchorX="center">© 2025 Anshveer Singh</Text>
+        <Text font="/font.ttf" position={[0, isMobile ? -5.5 : -4.5, 0]} fontSize={0.4} color="#3b82f6" fontWeight={800} anchorX="center">Thank You!</Text>
+        <Text font="/font.ttf" position={[0, isMobile ? -6.0 : -5.0, 0]} fontSize={0.12} color="#cbd5e1" anchorX="center">(C) 2025 Anshveer Singh</Text>
       </Float>
     </group>
   );
+}
+
+function AIController() {
+  const scroll = useScroll();
+
+  useEffect(() => {
+    // Expose the scroll engine to the bot
+    window.aiNavigate = (targetOffset) => {
+      if (scroll && scroll.el) {
+        // scroll.el.scrollHeight is the total scrollable content
+        // scroll.el.clientHeight is the visible window size
+        // Max scrollable distance = scrollHeight - clientHeight
+        const maxScroll = scroll.el.scrollHeight - scroll.el.clientHeight;
+        scroll.el.scrollTo({
+          top: maxScroll * targetOffset,
+          behavior: 'auto'
+        });
+      }
+    };
+
+    // Cleanup
+    return () => { delete window.aiNavigate; };
+  }, [scroll]);
+
+  return null;
 }
 
 function Scene() {
   const scroll = useScroll();
   useFrame((state) => {
     state.camera.position.z = 5 - (scroll.offset * 215);
+    const debugNode = document.getElementById('debug-offset');
+    if (debugNode) {
+      debugNode.innerText = `Scroll Offset: ${scroll.offset.toFixed(3)}`;
+    }
   });
   return (
     <group>
@@ -558,23 +643,37 @@ export default function Experience() {
     // CHANGE: Removed 'bg-[#f8fafc]' to make container transparent
     <div className="h-screen w-full">
       <Canvas camera={{ position: [0, 0, 5], fov: 40 }} gl={{ antialias: true }} shadows>
-        {/* CHANGE: Removed <color attach="background" ... /> and <fog ... /> */}
-        <ambientLight intensity={1.5} />
-        <directionalLight position={[5, 10, 5]} intensity={2} castShadow color="#ffffff" />
-        <directionalLight position={[-5, 5, 5]} intensity={1} color="#bfdbfe" />
-        <ContactShadows opacity={0.2} scale={30} blur={2} far={4} color="#94a3b8" />
+        <Suspense fallback={null}>
+          <ambientLight intensity={1.5} />
+          <directionalLight position={[5, 10, 5]} intensity={2} castShadow color="#ffffff" />
+          <directionalLight position={[-5, 5, 5]} intensity={1} color="#bfdbfe" />
+          <ContactShadows opacity={0.2} scale={30} blur={2} far={4} color="#94a3b8" />
 
-        <ScrollControls pages={11} damping={0.3}>
-          <BackgroundSync />
-          <SkipButton />
-          <DarkWarpParticles count={1000} />
-          <WarpStars />
-          <Scene />
-        </ScrollControls>
+          <ScrollControls pages={11} damping={0.3}>
+            <BackgroundSync />
+            <SkipButton />
+            <DarkWarpParticles count={1000} />
+            <WarpStars />
+            <Scene />
+            <AIController />
+          </ScrollControls>
+        </Suspense>
       </Canvas>
+      <Loader 
+        containerStyles={{ background: '#f8fafc' }}
+        innerStyles={{ width: '300px' }}
+        barStyles={{ background: '#0ea5e9', height: '4px' }}
+        dataInterpolation={(p) => `Loading Anshveer's Portfolio... ${p.toFixed(0)}%`}
+      />
       <div className="fixed bottom-6 left-0 w-full text-center z-50 pointer-events-none">
         <p className="text-[10px] text-slate-400 font-bold tracking-[0.3em] animate-pulse">SCROLL TO FLY</p>
       </div>
     </div>
   );
 }
+
+// Preload heavy textures to ensure immediate rendering
+useTexture.preload("/profile1.jpg");
+useTexture.preload("/profile2.jpg");
+useTexture.preload("/profile3.jpg");
+useTexture.preload("/profile4.jpg");
