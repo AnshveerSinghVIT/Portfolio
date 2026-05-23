@@ -671,9 +671,3 @@ export default function Experience() {
     </div>
   );
 }
-
-// Preload heavy textures to ensure immediate rendering
-useTexture.preload("/profile1.jpg");
-useTexture.preload("/profile2.jpg");
-useTexture.preload("/profile3.jpg");
-useTexture.preload("/profile4.jpg");

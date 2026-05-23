@@ -132,7 +132,7 @@ export default function SmartAIChat() {
     return (
       <button 
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-20 md:bottom-6 right-6 z-50 bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white p-4 rounded-full shadow-[0_0_20px_rgba(139,92,246,0.4)] hover:shadow-[0_0_25px_rgba(139,92,246,0.6)] hover:scale-105 border border-indigo-400/30 transition-all duration-300"
+        className="fixed bottom-10 md:bottom-6 right-6 z-50 bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white p-4 rounded-full shadow-[0_0_20px_rgba(139,92,246,0.4)] hover:shadow-[0_0_25px_rgba(139,92,246,0.6)] hover:scale-105 border border-indigo-400/30 transition-all duration-300"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z" />
@@ -142,7 +142,7 @@ export default function SmartAIChat() {
   }
 
   return (
-    <div className="fixed bottom-20 md:bottom-6 right-6 z-50 w-80 bg-slate-900/80 backdrop-blur-xl rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] border border-slate-700/50 overflow-hidden flex flex-col h-[28rem]">
+    <div className="fixed bottom-10 md:bottom-6 right-6 z-50 w-80 bg-slate-900/80 backdrop-blur-xl rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] border border-slate-700/50 overflow-hidden flex flex-col h-[28rem]">
       <div className="bg-gradient-to-r from-slate-800 to-slate-800/80 p-3 flex justify-between items-center border-b border-indigo-500/20 shadow-md">
         <h3 className="text-white font-semibold text-sm flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>

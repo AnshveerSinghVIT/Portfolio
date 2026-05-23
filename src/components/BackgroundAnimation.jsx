@@ -21,19 +21,45 @@ export default function BackgroundAnimation() {
         images.current.push(null);
       }
 
-      // Load first frame immediately so the background isn't blank
-      const img0 = new Image();
-      img0.src = `/frames/frame_001.webp`;
-      img0.onload = () => renderFrame(0);
-      images.current[0] = img0;
+      // Load first 5 frames immediately so the background has a starting state
+      for (let i = 0; i < 5; i++) {
+        if (i >= frameCount) break;
+        const img = new Image();
+        img.src = `/frames/frame_${(i + 1).toString().padStart(3, '0')}.webp`;
+        if (i === 0) img.onload = () => renderFrame(0);
+        images.current[i] = img;
+      }
 
-      // Lazy load the rest after a delay to unblock the browser network queue
-      // This allows the critical 3D profile textures to download first!
-      setTimeout(() => {
-        for (let i = 1; i < frameCount; i++) {
+      // Lazily stream the remaining frames in small batches
+      let currentBatchStart = 5;
+      const batchSize = 10;
+
+      const loadNextBatch = () => {
+        if (currentBatchStart >= frameCount) return;
+        
+        const end = Math.min(currentBatchStart + batchSize, frameCount);
+        for (let i = currentBatchStart; i < end; i++) {
           const img = new Image();
           img.src = `/frames/frame_${(i + 1).toString().padStart(3, '0')}.webp`;
           images.current[i] = img;
+        }
+        currentBatchStart = end;
+
+        if (currentBatchStart < frameCount) {
+          if ('requestIdleCallback' in window) {
+            window.requestIdleCallback(loadNextBatch);
+          } else {
+            setTimeout(loadNextBatch, 50);
+          }
+        }
+      };
+
+      // Delay the start of the lazy loading to prioritize 3D UI
+      setTimeout(() => {
+        if ('requestIdleCallback' in window) {
+          window.requestIdleCallback(loadNextBatch);
+        } else {
+          setTimeout(loadNextBatch, 50);
         }
       }, 1500);
     };

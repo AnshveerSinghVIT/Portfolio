@@ -1,5 +1,4 @@
-import Experience from '@/components/Experience';
-import BackgroundAnimation from '@/components/BackgroundAnimation';
+import DynamicCanvasLayer from '@/components/DynamicCanvasLayer';
 import SmartAIChatWrapper from '@/components/SmartAIChatWrapper';
 
 export default function Home() {
@@ -7,10 +6,7 @@ export default function Home() {
     <main className="relative w-full min-h-screen">
       
       {/* --- VISUAL LAYER (For Humans) --- */}
-      <BackgroundAnimation />
-      <section className="relative z-10">
-        <Experience />
-      </section>
+      <DynamicCanvasLayer />
       
       <SmartAIChatWrapper />
 
