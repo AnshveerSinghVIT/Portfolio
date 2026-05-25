@@ -45,12 +45,14 @@ function WarpStars() {
 }
 
 function DarkWarpParticles({ count = 1000 }) {
+  const isMobile = useMobile();
+  const activeCount = isMobile ? Math.min(300, count) : count;
   const scroll = useScroll();
   const meshRef = useRef();
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const particles = useMemo(() => {
     const temp = [];
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < activeCount; i++) {
       const t = Math.random() * 100;
       const factor = 20 + Math.random() * 100;
       const speed = 0.01 + Math.random() / 200;
@@ -78,7 +80,7 @@ function DarkWarpParticles({ count = 1000 }) {
   });
 
   return (
-    <Instances range={count} ref={meshRef}>
+    <Instances range={activeCount} ref={meshRef}>
       <boxGeometry args={[0.05, 0.05, 0.05]} />
       <meshBasicMaterial color="#94a3b8" transparent opacity={0.6} />
       {particles.map((data, i) => <Instance key={i} />)}
@@ -87,12 +89,14 @@ function DarkWarpParticles({ count = 1000 }) {
 }
 
 function ConfettiParticles({ count = 150 }) {
+  const isMobile = useMobile();
+  const activeCount = isMobile ? Math.min(50, count) : count;
   const meshRef = useRef();
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const particles = useMemo(() => {
     const temp = [];
     const colors = ["#ff6b6b", "#4ecdc4", "#ffe66d", "#1a535c", "#ff9f43"];
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < activeCount; i++) {
       const x = (Math.random() - 0.5) * 15;
       const y = (Math.random() - 0.5) * 10;
       const z = (Math.random() - 0.5) * 5;
@@ -120,7 +124,7 @@ function ConfettiParticles({ count = 150 }) {
   });
 
   return (
-    <Instances range={count} ref={meshRef}>
+    <Instances range={activeCount} ref={meshRef}>
       <boxGeometry args={[0.1, 0.1, 0.01]} />
       <meshStandardMaterial roughness={0.5} />
       {particles.map((data, i) => <Instance key={i} />)}
@@ -490,9 +494,9 @@ function ExperienceZone() {
           <InteractiveImage url="/dell.jpg" position={isMobile ? [0, 1.5, 0] : [-2.5, 0, 0]} scale={isMobile ? [2.5, 1.5] : [3.5, 2.1]} />
 
           <group position={isMobile ? [1.2, -0.8, 0] : [1, -0.5, 0]}>
-            <Text font="/font.ttf" position={isMobile?[-1.2, 1, 0.7]:[-1.2, 1, 0.7]} fontSize={isMobile ?0.4 : 0.6} color="#0672cb" fontWeight={800} anchorX={isMobile ? "center" : "left"} maxWidth={isMobile ? 3.5 : 5} textAlign={isMobile ? "center" : "left"}>Dell Technologies</Text>
-            <Text font="/font.ttf" position={isMobile?[-1.2, 0.2, 0.5]:[-1.2, 0, 0.5]} fontSize={isMobile ? 0.16 : 0.2} color="#475569" fontWeight={600} anchorX={isMobile ? "center" : "left"} maxWidth={isMobile ? 3 : 5} textAlign={isMobile ? "center" : "left"}>Undergraduate Intern | Starts June 2025</Text>
-            <Text font="/font.ttf" position={isMobile?[-1.2, -0.1, 0.5]:[-1.2, -0.4, 0.5]} fontSize={isMobile ? 0.14 : 0.2} color="#64748b" anchorX={isMobile ? "center" : "left"} maxWidth={isMobile ? 3.5 : 5} textAlign={isMobile ? "center" : "left"} lineHeight={1.4}>Secured from on-campus testing and interviews</Text>
+            <Text font="/font.ttf" position={isMobile ? [-1.2, 1, 0.7] : [-1.2, 1, 0.7]} fontSize={isMobile ? 0.4 : 0.6} color="#0672cb" fontWeight={800} anchorX={isMobile ? "center" : "left"} maxWidth={isMobile ? 3.5 : 5} textAlign={isMobile ? "center" : "left"}>Dell Technologies</Text>
+            <Text font="/font.ttf" position={isMobile ? [-1.2, 0.2, 0.5] : [-1.2, 0, 0.5]} fontSize={isMobile ? 0.16 : 0.2} color="#475569" fontWeight={600} anchorX={isMobile ? "center" : "left"} maxWidth={isMobile ? 3 : 5} textAlign={isMobile ? "center" : "left"}>Undergraduate Intern | Starts June 2025</Text>
+            <Text font="/font.ttf" position={isMobile ? [-1.2, -0.1, 0.5] : [-1.2, -0.4, 0.5]} fontSize={isMobile ? 0.14 : 0.2} color="#64748b" anchorX={isMobile ? "center" : "left"} maxWidth={isMobile ? 3.5 : 5} textAlign={isMobile ? "center" : "left"} lineHeight={1.4}>Secured from on-campus testing and interviews</Text>
           </group>
         </group>
       </Float>
@@ -651,12 +655,12 @@ export default function Experience() {
   return (
     // CHANGE: Removed 'bg-[#f8fafc]' to make container transparent
     <div className="h-screen w-full">
-      <Canvas camera={{ position: [0, 0, 5], fov: 40 }} gl={{ antialias: true }} shadows>
+      <Canvas dpr={[1, 1.5]} camera={{ position: [0, 0, 5], fov: 40 }} gl={{ antialias: true }} shadows>
         <Suspense fallback={null}>
           <ambientLight intensity={1.5} />
           <directionalLight position={[5, 10, 5]} intensity={2} castShadow color="#ffffff" />
           <directionalLight position={[-5, 5, 5]} intensity={1} color="#bfdbfe" />
-          <ContactShadows opacity={0.2} scale={30} blur={2} far={4} color="#94a3b8" />
+          <ContactShadows resolution={256} frames={1} opacity={0.2} scale={30} blur={2} far={4} color="#94a3b8" />
 
           <ScrollControls pages={11} damping={0.3}>
             <ExperienceLoadedDispatcher />
@@ -669,7 +673,7 @@ export default function Experience() {
           </ScrollControls>
         </Suspense>
       </Canvas>
-      <Loader 
+      <Loader
         containerStyles={{ background: '#f8fafc' }}
         innerStyles={{ width: '300px' }}
         barStyles={{ background: '#0ea5e9', height: '4px' }}
