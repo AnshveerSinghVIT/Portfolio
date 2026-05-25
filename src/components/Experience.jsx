@@ -638,6 +638,15 @@ function BackgroundSync() {
   return null;
 }
 
+function ExperienceLoadedDispatcher() {
+  useEffect(() => {
+    // Dispatch an event to notify that the 3D Experience is fully loaded and interactive
+    window.isExperienceLoaded = true;
+    window.dispatchEvent(new Event('experience-loaded'));
+  }, []);
+  return null;
+}
+
 export default function Experience() {
   return (
     // CHANGE: Removed 'bg-[#f8fafc]' to make container transparent
@@ -650,6 +659,7 @@ export default function Experience() {
           <ContactShadows opacity={0.2} scale={30} blur={2} far={4} color="#94a3b8" />
 
           <ScrollControls pages={11} damping={0.3}>
+            <ExperienceLoadedDispatcher />
             <BackgroundSync />
             <SkipButton />
             <DarkWarpParticles count={1000} />

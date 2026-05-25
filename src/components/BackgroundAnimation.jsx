@@ -21,64 +21,101 @@ export default function BackgroundAnimation() {
         images.current.push(null);
       }
 
-      // Load first 5 frames immediately so the background has a starting state
-      for (let i = 0; i < 5; i++) {
-        if (i >= frameCount) break;
-        const img = new Image();
-        img.src = `/frames/frame_${(i + 1).toString().padStart(3, '0')}.webp`;
-        if (i === 0) img.onload = () => renderFrame(0);
-        images.current[i] = img;
-      }
+      // Phase 1: Load ONLY the very first frame immediately so the background has a starting state
+      const img = new Image();
+      img.src = `/frames/frame_001.webp`;
+      img.onload = () => renderFrame(0);
+      images.current[0] = img;
 
-      // Lazily stream the remaining frames in small batches
-      let currentBatchStart = 5;
-      const batchSize = 10;
+      const startLazyLoading = () => {
+        // Detect connection speed
+        const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        const isSlow = connection && (
+            connection.saveData ||
+            connection.effectiveType === 'slow-2g' ||
+            connection.effectiveType === '2g' ||
+            connection.effectiveType === '3g'
+        );
 
-      const loadNextBatch = () => {
-        if (currentBatchStart >= frameCount) return;
+        // Phase 3: Determine loading strategy based on connection
+        // Slow networks: load every 8th frame (stops at 1 pass). Fast networks: start with every 4th frame, then 2nd, then 1st.
+        let currentPassStep = isSlow ? 8 : 4; 
+        let currentIndex = currentPassStep;
         
-        const end = Math.min(currentBatchStart + batchSize, frameCount);
-        for (let i = currentBatchStart; i < end; i++) {
-          const img = new Image();
-          img.src = `/frames/frame_${(i + 1).toString().padStart(3, '0')}.webp`;
-          images.current[i] = img;
-        }
-        currentBatchStart = end;
+        const loadNextFrame = () => {
+            // Done loading all passes
+            if (currentPassStep < 1) return;
+            if (isSlow && currentIndex >= frameCount) return;
 
-        if (currentBatchStart < frameCount) {
-          if ('requestIdleCallback' in window) {
-            window.requestIdleCallback(loadNextBatch);
-          } else {
-            setTimeout(loadNextBatch, 50);
-          }
+            if (currentIndex >= frameCount) {
+                // If we're on a fast connection, we start a new pass to backfill
+                currentPassStep = Math.floor(currentPassStep / 2);
+                currentIndex = currentPassStep;
+                if (currentPassStep < 1) return;
+            }
+
+            // Skip if already loaded (e.g., from a previous sparse pass)
+            if (!images.current[currentIndex]) {
+                const img = new Image();
+                img.src = `/frames/frame_${(currentIndex + 1).toString().padStart(3, '0')}.webp`;
+                images.current[currentIndex] = img;
+            }
+
+            currentIndex += currentPassStep;
+
+            if ('requestIdleCallback' in window) {
+                window.requestIdleCallback(loadNextFrame);
+            } else {
+                setTimeout(loadNextFrame, 50);
+            }
+        };
+
+        // Start the loading sequence
+        if ('requestIdleCallback' in window) {
+            window.requestIdleCallback(loadNextFrame);
+        } else {
+            setTimeout(loadNextFrame, 50);
         }
       };
 
-      // Delay the start of the lazy loading to prioritize 3D UI
-      setTimeout(() => {
-        if ('requestIdleCallback' in window) {
-          window.requestIdleCallback(loadNextBatch);
-        } else {
-          setTimeout(loadNextBatch, 50);
-        }
-      }, 1500);
+      // Phase 2: Wait for 3D Experience to be fully loaded before hogging the network
+      if (window.isExperienceLoaded) {
+          startLazyLoading();
+      } else {
+          window.addEventListener('experience-loaded', startLazyLoading, { once: true });
+      }
     };
 
     // 3. The Drawing Logic
     const renderFrame = (index) => {
-      const img = images.current[index];
-      if (img && img.complete && img.naturalWidth !== 0) {
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // --- ZOOM SETTINGS ---
-        const zoom = 1.3; 
-        
-        const scale = Math.max(canvas.width / img.width, canvas.height / img.height) * zoom;
-        const x = (canvas.width / 2) - (img.width / 2) * scale;
-        const y = (canvas.height / 2) - (img.height / 2) * scale -100;
-
-        context.drawImage(img, x, y, img.width * scale, img.height * scale);
+      // Find the closest loaded frame if the exact one isn't ready
+      let foundIndex = -1;
+      for (let offset = 0; offset < frameCount; offset++) {
+          let checkUp = index + offset;
+          if (checkUp < frameCount && images.current[checkUp] && images.current[checkUp].complete && images.current[checkUp].naturalWidth !== 0) {
+              foundIndex = checkUp;
+              break;
+          }
+          let checkDown = index - offset;
+          if (checkDown >= 0 && images.current[checkDown] && images.current[checkDown].complete && images.current[checkDown].naturalWidth !== 0) {
+              foundIndex = checkDown;
+              break;
+          }
       }
+      
+      if (foundIndex === -1) return;
+      const img = images.current[foundIndex];
+      
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // --- ZOOM SETTINGS ---
+      const zoom = 1.3; 
+      
+      const scale = Math.max(canvas.width / img.width, canvas.height / img.height) * zoom;
+      const x = (canvas.width / 2) - (img.width / 2) * scale;
+      const y = (canvas.height / 2) - (img.height / 2) * scale -100;
+
+      context.drawImage(img, x, y, img.width * scale, img.height * scale);
     };
 
     // 4. THE BRIDGE: Expose this function to the window so Experience.jsx can call it
