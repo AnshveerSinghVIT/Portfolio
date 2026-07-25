@@ -495,8 +495,8 @@ function ExperienceZone() {
 
           <group position={isMobile ? [1.2, -0.8, 0] : [1, -0.5, 0]}>
             <Text font="/font.ttf" position={isMobile ? [-1.2, 1, 0.7] : [-1.2, 1, 0.7]} fontSize={isMobile ? 0.4 : 0.6} color="#0672cb" fontWeight={800} anchorX={isMobile ? "center" : "left"} maxWidth={isMobile ? 3.5 : 5} textAlign={isMobile ? "center" : "left"}>Dell Technologies</Text>
-            <Text font="/font.ttf" position={isMobile ? [-1.2, 0.2, 0.5] : [-1.2, 0, 0.5]} fontSize={isMobile ? 0.16 : 0.2} color="#475569" fontWeight={600} anchorX={isMobile ? "center" : "left"} maxWidth={isMobile ? 3 : 5} textAlign={isMobile ? "center" : "left"}>Undergraduate Intern | Starts June 2025</Text>
-            <Text font="/font.ttf" position={isMobile ? [-1.2, -0.1, 0.5] : [-1.2, -0.4, 0.5]} fontSize={isMobile ? 0.14 : 0.2} color="#64748b" anchorX={isMobile ? "center" : "left"} maxWidth={isMobile ? 3.5 : 5} textAlign={isMobile ? "center" : "left"} lineHeight={1.4}>Secured from on-campus testing and interviews</Text>
+            <Text font="/font.ttf" position={isMobile ? [-1.2, 0.2, 0.5] : [-1.2, 0, 0.5]} fontSize={isMobile ? 0.16 : 0.2} color="#475569" fontWeight={600} anchorX={isMobile ? "center" : "left"} maxWidth={isMobile ? 3 : 5} textAlign={isMobile ? "center" : "left"}>Undergraduate Intern | June 1st - July 31st 2026</Text>
+            <Text font="/font.ttf" position={isMobile ? [-1.2, -0.1, 0.5] : [-1.2, -0.4, 0.5]} fontSize={isMobile ? 0.14 : 0.2} color="#64748b" anchorX={isMobile ? "center" : "left"} maxWidth={isMobile ? 3.5 : 5} textAlign={isMobile ? "center" : "left"} lineHeight={1.4}>Worked on two Projects. Secured from on-campus testing and interviews</Text>
           </group>
         </group>
       </Float>
