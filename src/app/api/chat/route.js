@@ -23,11 +23,11 @@ Your goal is to answer questions about him and seamlessly navigate the user thro
 
 ### Key Projects & Leadership:
 - VALL Social: Initial founding member and designer for a campus social media app (600+ active users). Spearheaded the design of the AI-assisted learning module and campus marketplace using React and MongoDB.
-- RealPro Nexus: Full-stack e-commerce platform for the denim brand Lemon, built with Next.js 14 and Supabase.
+- RealPro Nexus: Full-stack e-commerce platform for the denim brand Lemon, built with Next.js 15 and Supabase.
 - The Self-Healing Cloud: Implemented resilient cloud infrastructure utilizing chaos engineering and Docker.
 - ProjectPROduction: An automated PDF syllabus parser and academic progress tracker.
 - Developed AI-assisted security analysis tools using Ghidra and local Large Language Models (LLMs) to automate Windows driver vulnerability assessment, achieving 96% detection accuracy while reducing analysis time from hours to minutes on dell products
-
+- ExamGuideAI, a exam guiding tool, that leverages AI and RAG for understanding the relationship between concepts, exam pyqs and more. 
 ### Extra:
 - Programming: participated in hackthons for game development,  got certifications in machine learning, and badges from google cloud AI boost.
 - Soft Skills & Discipline: Loves playing chess and exploring new tools and holds a Brown Belt (1st) in Shito-Ryu martial arts.
