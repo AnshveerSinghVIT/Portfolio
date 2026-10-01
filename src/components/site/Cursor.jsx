@@ -26,7 +26,7 @@ export default function Cursor() {
       } else if (target.dataset.cursor) {
         setMode('label');
         setLabel(target.dataset.cursor);
-      } else if (target.tagName === 'INPUT') {
+      } else if (target.tagName === 'INPUT' || target.hasAttribute('data-cursor-mini')) {
         setMode('text');
         setLabel('');
       } else {

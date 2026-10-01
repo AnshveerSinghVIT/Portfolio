@@ -43,8 +43,35 @@ export default function Nav() {
     <>
       <div className="progress" style={{ transform: `scaleX(${progress})` }} aria-hidden="true" />
       <header className="nav" data-tone={active === 'contact' ? 'ink' : undefined}>
-        <a href="#top" className="nav__mark" onClick={go('top')} aria-label="Anshveer Singh — back to top">
-          AS<sup>®</sup>
+        <a href="#top" className="mark" onClick={go('top')} aria-label="Anshveer Singh — back to top" data-cursor-mini>
+          <span className="mark__badge" aria-hidden="true">
+            <svg className="mark__ring" viewBox="0 0 100 100">
+              <defs>
+                <path id="mark-ring-path" d="M50,50 m-39,0 a39,39 0 1,1 78,0 a39,39 0 1,1 -78,0" />
+              </defs>
+              <text>
+                <textPath href="#mark-ring-path" textLength="243">
+                  ANSHVEER ✦ SINGH ✦ PORTFOLIO ✦{' '}
+                </textPath>
+              </text>
+            </svg>
+            <span className="mark__flip">
+              <span className="mark__face mark__face--front">
+                <span className="mark__a">A</span>
+                <span className="mark__s">s</span>
+              </span>
+              <span className="mark__face mark__face--back">↑</span>
+            </span>
+          </span>
+          <span className="mark__word" aria-hidden="true">
+            <span className="mark__name">
+              Anshveer <em>Singh</em>
+            </span>
+            <span className="mark__roll">
+              <span>Software engineer</span>
+              <span>Back to top</span>
+            </span>
+          </span>
         </a>
         <nav aria-label="Sections" className="nav__links">
           {sections.slice(1).map((s, i) => (

@@ -410,26 +410,46 @@ html { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 }
 .hero__line--serif { transform: none; }
 .hero__meta { align-items: center; gap: 16px; }
-.hero__status {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 7px 14px 7px 12px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: color-mix(in oklab, var(--paper) 70%, transparent);
-  backdrop-filter: blur(8px);
-  color: var(--ink);
-  font-size: 11px;
-  line-height: 1;
-  white-space: nowrap;
-}
-.hero__status .pulse { width: 8px; height: 8px; }
 .hero__foot { grid-template-columns: 1fr auto; }
 @media (max-width: 760px) {
-  .hero__meta > .reveal:first-child { display: none; }
-  .hero__status-more { display: none; }
   .hero__foot { grid-template-columns: 1fr; }
+}
+
+/* ---------- Nav mark ---------- */
+.mark { display: inline-flex; align-items: center; gap: 12px; color: inherit; }
+.mark__badge { position: relative; width: 54px; height: 54px; flex: none; display: grid; place-items: center; }
+.mark__ring { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; animation: spin 16s linear infinite; }
+.mark__ring text { font-family: var(--font-mono), monospace; font-size: 9px; letter-spacing: 0.06em; fill: currentColor; }
+.mark__flip { position: relative; width: 32px; height: 32px; }
+.mark__face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  transition: transform 0.6s var(--ease-out), opacity 0.35s;
+}
+.mark__face--front { border: 1px solid currentColor; }
+.mark__face--back { background: #fff; color: #000; font-size: 15px; font-weight: 600; opacity: 0; transform: rotate(-120deg) scale(0.4); }
+.mark:hover .mark__face--front, .mark:focus-visible .mark__face--front { opacity: 0; transform: rotate(120deg) scale(0.4); }
+.mark:hover .mark__face--back, .mark:focus-visible .mark__face--back { opacity: 1; transform: none; }
+.mark__a { position: absolute; left: 6px; top: 3px; font-size: 17px; font-weight: 700; letter-spacing: -0.04em; line-height: 1; }
+.mark__s { position: absolute; right: 6px; bottom: 4px; font-family: var(--font-serif), Georgia, serif; font-style: italic; font-size: 19px; line-height: 0.8; }
+.mark__word { display: grid; gap: 3px; line-height: 1; }
+.mark__name { font-size: 15px; font-weight: 600; letter-spacing: -0.03em; white-space: nowrap; }
+.mark__name em { font-family: var(--font-serif), Georgia, serif; font-style: italic; font-weight: 400; font-size: 1.12em; letter-spacing: -0.01em; }
+.mark__roll { display: grid; height: 11px; overflow: hidden; font-family: var(--font-mono), monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.7; }
+.mark__roll > span { grid-area: 1 / 1; transition: transform 0.55s var(--ease-out); white-space: nowrap; }
+.mark__roll > span:last-child { transform: translateY(110%); }
+.mark:hover .mark__roll > span:first-child { transform: translateY(-110%); }
+.mark:hover .mark__roll > span:last-child { transform: none; }
+.nav[data-tone='ink'] .mark__face--back { background: var(--ink); color: var(--accent); }
+@media (max-width: 640px) {
+  .mark__word { display: none; }
+  .mark__badge { width: 44px; height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mark__ring { animation: none; }
 }
 
 /* Next's dev indicator sits at bottom-left in development */

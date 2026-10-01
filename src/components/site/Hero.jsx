@@ -120,10 +120,6 @@ export default function Hero() {
         <span className="reveal" style={{ '--d': '0.1s' }}>
           Portfolio — Edition 2026
         </span>
-        <span className="hero__status reveal" style={{ '--d': '0.2s' }}>
-          <span className="pulse" aria-hidden="true" />
-          Open to opportunities<span className="hero__status-more">&nbsp;&amp; collaborations</span>
-        </span>
         <span className="hero__index reveal" style={{ '--d': '0.3s' }}>
           Index / 001
         </span>
