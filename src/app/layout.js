@@ -1,4 +1,5 @@
 import { Geist, Geist_Mono, Instrument_Serif } from 'next/font/google';
+import DynamicFavicon from '@/components/DynamicFavicon';
 import './globals.css';
 
 const sans = Geist({ subsets: ['latin'], variable: '--font-sans' });
@@ -22,7 +23,7 @@ export const metadata = {
     description: 'Computer Science Engineer & Full Stack Developer',
     url: 'https://anshveersingh.vercel.app',
     siteName: 'Anshveer Singh Portfolio',
-    images: [{ url: '/profile.jpg', width: 1200, height: 630 }],
+    images: [{ url: '/profile1.jpg', width: 1200, height: 630 }],
     locale: 'en_US',
     type: 'website',
   },
@@ -33,7 +34,10 @@ export const viewport = { themeColor: '#efece6' };
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${sans.variable} ${mono.variable} ${serif.variable}`}>
-      <body>{children}</body>
+      <body>
+        <DynamicFavicon />
+        {children}
+      </body>
     </html>
   );
 }
