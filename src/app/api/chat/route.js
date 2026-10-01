@@ -1,13 +1,22 @@
 import Groq from "groq-sdk";
 import { NextResponse } from "next/server";
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
+let groq;
 
 export async function POST(req) {
+  if (!process.env.GROQ_API_KEY) {
+    console.error("Groq API Error: GROQ_API_KEY is not set");
+    return NextResponse.json(
+      { reply: "My AI brain isn't configured on this server yet — but I can still point you around the page.", navigate: "none", error: "missing_key" },
+      { status: 503 }
+    );
+  }
+  groq ??= new Groq({ apiKey: process.env.GROQ_API_KEY });
   try {
     const { message } = await req.json();
+    if (typeof message !== "string" || !message.trim()) {
+      return NextResponse.json({ reply: "Ask me something about Anshveer!", navigate: "none" }, { status: 400 });
+    }
 
     const systemPrompt = `You are the official AI Assistant for Anshveer Singh's 3D Portfolio. 
 Your goal is to answer questions about him and seamlessly navigate the user through the 3D environment.
@@ -62,7 +71,7 @@ Artificial Intelligence, Natural Language Processing, Software Engineering, Desi
     const chatCompletion = await groq.chat.completions.create({
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: message }
+        { role: "user", content: message.slice(0, 1000) }
       ],
       model: "openai/gpt-oss-120b",
       temperature: 0.2,
@@ -70,7 +79,12 @@ Artificial Intelligence, Natural Language Processing, Software Engineering, Desi
     });
 
     const responseContent = chatCompletion.choices[0]?.message?.content;
-    const parsedData = JSON.parse(responseContent);
+    let parsedData;
+    try {
+      parsedData = JSON.parse(responseContent);
+    } catch {
+      parsedData = { reply: responseContent, navigate: "none" };
+    }
     return NextResponse.json(parsedData);
   } catch (error) {
     console.error("Groq API Error:", error);

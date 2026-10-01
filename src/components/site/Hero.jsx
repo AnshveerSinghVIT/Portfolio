@@ -27,7 +27,7 @@ export default function Hero() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      gsap.to('.hero__name', {
+      gsap.to('.hero__line', {
         yPercent: -22,
         scale: 0.94,
         opacity: 0,
@@ -120,7 +120,11 @@ export default function Hero() {
         <span className="reveal" style={{ '--d': '0.1s' }}>
           Portfolio — Edition 2026
         </span>
-        <span className="reveal" style={{ '--d': '0.3s' }}>
+        <span className="hero__status reveal" style={{ '--d': '0.2s' }}>
+          <span className="pulse" aria-hidden="true" />
+          Open to opportunities<span className="hero__status-more">&nbsp;&amp; collaborations</span>
+        </span>
+        <span className="hero__index reveal" style={{ '--d': '0.3s' }}>
           Index / 001
         </span>
       </div>
@@ -147,14 +151,6 @@ export default function Hero() {
           Software engineer working at the edge of <em>models</em> and <em>interfaces</em>. CS at VIT Vellore, ex-intern at Dell
           Technologies.
         </p>
-        <div className="hero__status reveal" style={{ '--d': '1.15s' }}>
-          <span className="pulse" aria-hidden="true" />
-          <span>
-            Open to opportunities
-            <br />
-            &amp; collaborations
-          </span>
-        </div>
         <div className="hero__side mono reveal" style={{ '--d': '1.25s' }}>
           <span className="hero__hint">( Click anywhere — it reacts )</span>
           <span>

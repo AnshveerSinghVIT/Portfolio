@@ -168,7 +168,7 @@ function Blob({ reduced }) {
 
   const mobile = size.width < 760;
   const baseX = 0;
-  const baseY = mobile ? viewport.height * 0.04 : 0;
+  const baseY = 0;
   const baseScale = mobile ? 0.62 : 0.98;
 
   useFrame((state, delta) => {
@@ -192,8 +192,8 @@ function Blob({ reduced }) {
     u.uMouse.value.y += (p.y - u.uMouse.value.y) * 0.04;
 
     const scrollT = Math.min(1, window.scrollY / innerHeight);
-    const targetX = baseX + p.x * 0.22;
-    const targetY = baseY + p.y * 0.16 + scrollT * 0.9;
+    const targetX = baseX + p.x * 0.14;
+    const targetY = baseY + p.y * 0.1 + scrollT * 0.9;
     m.position.x = THREE.MathUtils.lerp(m.position.x, targetX, 0.05);
     m.position.y = THREE.MathUtils.lerp(m.position.y, targetY, 0.05);
     m.rotation.y += delta * 0.08 + p.vx * 0.4;

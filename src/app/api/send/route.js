@@ -1,12 +1,17 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let resend;
 
 const ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
 const escapeHtml = (value = '') => String(value).replace(/[&<>"']/g, (c) => ESCAPES[c]);
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(request) {
+  if (!process.env.RESEND_API_KEY) {
+    console.error('Resend Error: RESEND_API_KEY is not set');
+    return Response.json({ error: 'Email is not configured on this server.' }, { status: 503 });
+  }
+  resend ??= new Resend(process.env.RESEND_API_KEY);
   try {
     const { email, subject, message } = await request.json();
     if (typeof email !== 'string' || !EMAIL_RE.test(email) || typeof message !== 'string' || !message.trim()) {

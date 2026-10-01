@@ -15,8 +15,9 @@ export default function Campus() {
   const bar = useRef(null);
 
   useEffect(() => {
+    ScrollTrigger.config({ ignoreMobileResize: true });
     const mm = gsap.matchMedia();
-    mm.add('(min-width: 861px) and (prefers-reduced-motion: no-preference)', () => {
+    mm.add('(prefers-reduced-motion: no-preference)', () => {
       root.current.classList.add('is-pinned');
       const distance = () => track.current.scrollWidth - innerWidth;
       const tween = gsap.to(track.current, {
@@ -27,6 +28,7 @@ export default function Campus() {
           start: 'top top',
           end: () => `+=${distance()}`,
           pin: true,
+          anticipatePin: 1,
           scrub: 0.8,
           invalidateOnRefresh: true,
           onUpdate: (self) => bar.current && (bar.current.style.transform = `scaleX(${self.progress})`),

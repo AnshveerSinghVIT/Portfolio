@@ -1,7 +1,5 @@
 'use client';
 
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 const VIEWS = [
@@ -11,30 +9,37 @@ const VIEWS = [
 const KEY = 'as-view-wipe';
 
 export default function ViewToggle({ current }) {
-  const router = useRouter();
   const [wipe, setWipe] = useState(null);
   const wipeRef = useRef(null);
 
   useEffect(() => {
-    let origin = null;
-    try {
-      origin = JSON.parse(sessionStorage.getItem(KEY));
-      sessionStorage.removeItem(KEY);
-    } catch {}
-    if (!origin) return;
     const el = wipeRef.current;
-    el.style.setProperty('--x', `${origin.x}px`);
-    el.style.setProperty('--y', `${origin.y}px`);
-    el.dataset.state = 'covered';
-    const t = setTimeout(() => (el.dataset.state = 'out'), 120);
-    return () => clearTimeout(t);
+    let t;
+    try {
+      const origin = JSON.parse(sessionStorage.getItem(KEY));
+      sessionStorage.removeItem(KEY);
+      if (origin) {
+        el.style.setProperty('--x', `${origin.x}px`);
+        el.style.setProperty('--y', `${origin.y}px`);
+        el.dataset.state = 'covered';
+        t = setTimeout(() => (el.dataset.state = 'out'), 150);
+      }
+    } catch {}
+    const onShow = (e) => {
+      if (e.persisted) setWipe(null);
+    };
+    window.addEventListener('pageshow', onShow);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener('pageshow', onShow);
+    };
   }, []);
 
   const go = (view) => (e) => {
-    if (view.id === current || e.metaKey || e.ctrlKey || e.shiftKey) return;
+    if (view.id === current || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
     e.preventDefault();
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      router.push(view.href);
+      window.location.assign(view.href);
       return;
     }
     const r = e.currentTarget.getBoundingClientRect();
@@ -43,19 +48,24 @@ export default function ViewToggle({ current }) {
     try {
       sessionStorage.setItem(KEY, JSON.stringify(origin));
     } catch {}
-    router.prefetch(view.href);
-    setTimeout(() => router.push(view.href), 750);
+    setTimeout(() => window.location.assign(view.href), 750);
   };
 
   return (
     <>
-      <nav className="view-toggle" aria-label="Choose how to view the portfolio" data-current={current}>
+      <nav className="view-toggle" aria-label="Choose how to view the portfolio" data-current={current} data-dev={process.env.NODE_ENV === 'development' || undefined}>
         {VIEWS.map((v) => (
-          <Link key={v.id} href={v.href} onClick={go(v)} aria-current={v.id === current ? 'page' : undefined} className="view-toggle__opt" data-cursor={v.id === current ? undefined : 'Switch'}>
+          <a
+            key={v.id}
+            href={v.href}
+            onClick={go(v)}
+            aria-current={v.id === current ? 'page' : undefined}
+            className="view-toggle__opt"
+            data-cursor={v.id === current ? undefined : 'Switch'}
+          >
             {v.label}
-          </Link>
+          </a>
         ))}
-        <span className="view-toggle__thumb" aria-hidden="true" />
       </nav>
       <div
         ref={wipeRef}
