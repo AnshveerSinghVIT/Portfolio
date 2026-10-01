@@ -1,8 +1,23 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  /* config options here */
   reactCompiler: true,
-  turbopack: {}
+  turbopack: {},
+
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'anshveersingh.vercel.app',
+          },
+        ],
+        destination: 'https://anshveersingh.in/:path*',
+        permanent: false, // CRITICAL FIX: This makes it temporary
+      },
+    ];
+  },
 };
 
 export default nextConfig;
