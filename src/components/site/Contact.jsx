@@ -6,7 +6,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { profile } from '@/lib/data';
 import { emit, scrollToId } from '@/lib/scroll';
 import Magnetic from './Magnetic';
-import { EmailForm } from './AskAI';
+import EmailForm from './EmailForm';
 import LocalTime from './LocalTime';
 
 gsap.registerPlugin(ScrollTrigger);

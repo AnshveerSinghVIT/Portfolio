@@ -1,5 +1,6 @@
 import Groq from "groq-sdk";
 import { NextResponse } from "next/server";
+import { clientIp, crossOrigin, rateLimited } from "@/lib/guard";
 
 let groq;
 
@@ -10,6 +11,10 @@ export async function POST(req) {
       { reply: "My AI brain isn't configured on this server yet — but I can still point you around the page.", navigate: "none", error: "missing_key" },
       { status: 503 }
     );
+  }
+  if (crossOrigin(req)) return NextResponse.json({ reply: "Forbidden", navigate: "none" }, { status: 403 });
+  if (rateLimited(`chat:${clientIp(req)}`, 20, 10 * 60 * 1000)) {
+    return NextResponse.json({ reply: "You're asking faster than I can think — give me a minute and try again.", navigate: "none" }, { status: 429 });
   }
   groq ??= new Groq({ apiKey: process.env.GROQ_API_KEY });
   try {

@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { clientIp, crossOrigin, rateLimited } from '@/lib/guard';
 
 let resend;
 
@@ -11,10 +12,15 @@ export async function POST(request) {
     console.error('Resend Error: RESEND_API_KEY is not set');
     return Response.json({ error: 'Email is not configured on this server.' }, { status: 503 });
   }
+  if (crossOrigin(request)) return Response.json({ error: 'Forbidden' }, { status: 403 });
+  if (rateLimited(`send:${clientIp(request)}`, 3, 60 * 60 * 1000)) {
+    return Response.json({ error: 'Too many messages — please email directly instead.' }, { status: 429 });
+  }
   resend ??= new Resend(process.env.RESEND_API_KEY);
   try {
-    const { email, subject, message } = await request.json();
-    if (typeof email !== 'string' || !EMAIL_RE.test(email) || typeof message !== 'string' || !message.trim()) {
+    const { email, subject, message, company } = await request.json();
+    if (company) return Response.json({ success: true });
+    if (typeof email !== 'string' || email.length > 254 || !EMAIL_RE.test(email) || typeof message !== 'string' || !message.trim()) {
       return Response.json({ error: 'A valid email and message are required.' }, { status: 400 });
     }
     const safeSubject = String(subject || 'New message').replace(/[\r\n]+/g, ' ').slice(0, 150);

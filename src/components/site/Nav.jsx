@@ -43,7 +43,7 @@ export default function Nav() {
     <>
       <div className="progress" style={{ transform: `scaleX(${progress})` }} aria-hidden="true" />
       <header className="nav" data-tone={active === 'contact' ? 'ink' : undefined}>
-        <a href="#top" className="mark" onClick={go('top')} aria-label="Anshveer Singh — back to top" data-cursor-mini>
+        <a href="#top" className="mark" onClick={go('top')} data-cursor-mini>
           <span className="mark__badge" aria-hidden="true">
             <svg className="mark__ring" viewBox="0 0 100 100">
               <defs>
@@ -63,11 +63,12 @@ export default function Nav() {
               <span className="mark__face mark__face--back">↑</span>
             </span>
           </span>
-          <span className="mark__word" aria-hidden="true">
+          <span className="mark__word">
             <span className="mark__name">
               Anshveer <em>Singh</em>
             </span>
-            <span className="mark__roll">
+            <span className="sr-only">, back to top</span>
+            <span className="mark__roll" aria-hidden="true">
               <span>Software engineer</span>
               <span>Back to top</span>
             </span>
@@ -85,8 +86,8 @@ export default function Nav() {
           <span className="nav__time mono">
             BLR <LocalTime />
           </span>
-          <button type="button" className="nav__cmd" onClick={() => emit('palette:open')} aria-label="Open command menu" data-cursor="Explore">
-            <span className="nav__cmd-key">⌘K</span>
+          <button type="button" className="nav__cmd" onClick={() => emit('palette:open')} data-cursor="Explore">
+            <span className="nav__cmd-key" aria-hidden="true">⌘K</span>
             <span className="nav__cmd-text">Menu</span>
           </button>
         </div>

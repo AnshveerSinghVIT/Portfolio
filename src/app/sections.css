@@ -445,7 +445,7 @@ html { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .mark:hover .mark__roll > span:last-child { transform: none; }
 .nav[data-tone='ink'] .mark__face--back { background: var(--ink); color: var(--accent); }
 @media (max-width: 640px) {
-  .mark__word { display: none; }
+  .mark__word { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
   .mark__badge { width: 44px; height: 44px; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -458,3 +458,4 @@ html { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .hero__ring { width: min(80vmin, 860px); }
 @media (max-width: 760px) { .hero__ring { width: 112vw; } }
 @media (max-width: 420px) { .hero__side > * { white-space: nowrap; } .hero__scroll-line { display: none; } }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }

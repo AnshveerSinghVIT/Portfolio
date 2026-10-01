@@ -44,25 +44,42 @@ function WarpStars() {
   return <Stars ref={ref} radius={100} depth={50} count={2000} factor={4} saturation={0} fade speed={1} />;
 }
 
+function makeWarpParticles(n) {
+  const temp = [];
+  for (let i = 0; i < n; i++) {
+    const t = Math.random() * 100;
+    const factor = 20 + Math.random() * 100;
+    const speed = 0.01 + Math.random() / 200;
+    const xFactor = -50 + Math.random() * 100;
+    const yFactor = -50 + Math.random() * 100;
+    const zFactor = -50 + Math.random() * 100;
+    temp.push({ t, factor, speed, xFactor, yFactor, zFactor, mx: 0, my: 0 });
+  }
+  return temp;
+}
+
+function makeConfetti(n) {
+  const temp = [];
+  const colors = ["#ff6b6b", "#4ecdc4", "#ffe66d", "#1a535c", "#ff9f43"];
+  for (let i = 0; i < n; i++) {
+    const x = (Math.random() - 0.5) * 15;
+    const y = (Math.random() - 0.5) * 10;
+    const z = (Math.random() - 0.5) * 5;
+    const speed = 0.2 + Math.random() * 0.5;
+    const rotSpeed = (Math.random() - 0.5) * 2;
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    temp.push({ x, y, z, speed, rotSpeed, color });
+  }
+  return temp;
+}
+
 function DarkWarpParticles({ count = 1000 }) {
   const isMobile = useMobile();
   const activeCount = isMobile ? Math.min(300, count) : count;
   const scroll = useScroll();
   const meshRef = useRef();
   const dummy = useMemo(() => new THREE.Object3D(), []);
-  const particles = useMemo(() => {
-    const temp = [];
-    for (let i = 0; i < activeCount; i++) {
-      const t = Math.random() * 100;
-      const factor = 20 + Math.random() * 100;
-      const speed = 0.01 + Math.random() / 200;
-      const xFactor = -50 + Math.random() * 100;
-      const yFactor = -50 + Math.random() * 100;
-      const zFactor = -50 + Math.random() * 100;
-      temp.push({ t, factor, speed, xFactor, yFactor, zFactor, mx: 0, my: 0 });
-    }
-    return temp;
-  }, [count]);
+  const particles = useMemo(() => makeWarpParticles(activeCount), [activeCount]);
 
   useFrame((state, delta) => {
     if (!meshRef.current) return;
@@ -93,20 +110,7 @@ function ConfettiParticles({ count = 150 }) {
   const activeCount = isMobile ? Math.min(50, count) : count;
   const meshRef = useRef();
   const dummy = useMemo(() => new THREE.Object3D(), []);
-  const particles = useMemo(() => {
-    const temp = [];
-    const colors = ["#ff6b6b", "#4ecdc4", "#ffe66d", "#1a535c", "#ff9f43"];
-    for (let i = 0; i < activeCount; i++) {
-      const x = (Math.random() - 0.5) * 15;
-      const y = (Math.random() - 0.5) * 10;
-      const z = (Math.random() - 0.5) * 5;
-      const speed = 0.2 + Math.random() * 0.5;
-      const rotSpeed = (Math.random() - 0.5) * 2;
-      const color = colors[Math.floor(Math.random() * colors.length)];
-      temp.push({ x, y, z, speed, rotSpeed, color });
-    }
-    return temp;
-  }, [count]);
+  const particles = useMemo(() => makeConfetti(activeCount), [activeCount]);
 
   useFrame((state) => {
     if (!meshRef.current) return;
@@ -318,30 +322,29 @@ function IntroZone() {
   );
 }
 
+const TECH_SKILLS = [
+  { name: "Python", type: "lang" }, { name: "TypeScript", type: "lang" }, { name: "C++", type: "lang" }, { name: "Java", type: "lang" }, { name: "SQL", type: "lang" },
+  { name: "Next.js 14", type: "frame" }, { name: "React", type: "frame" }, { name: "Node.js", type: "frame" }, { name: "Tailwind", type: "frame" }, { name: "Prisma", type: "frame" },
+  { name: "Supabase", type: "cloud" }, { name: "AWS EC2", type: "cloud" }, { name: "Vertex AI", type: "cloud" }, { name: "PostgreSQL", type: "cloud" }, { name: "Vercel", type: "cloud" },
+  { name: "Git", type: "tool" }, { name: "Docker", type: "tool" }, { name: "REST APIs", type: "tool" }, { name: "Leadership", type: "soft" }, { name: "Adaptability", type: "soft" }
+];
+
+const TECH_COLORS = { lang: "#3b82f6", frame: "#a855f7", cloud: "#10b981", tool: "#f97316", soft: "#ec4899" };
+
 function TechZone() {
   const isMobile = useMobile();
   const zoneZ = -80;
 
-  // ... (Keep your skills array and colors object exactly as they are) ...
-  const skills = [
-    { name: "Python", type: "lang" }, { name: "TypeScript", type: "lang" }, { name: "C++", type: "lang" }, { name: "Java", type: "lang" }, { name: "SQL", type: "lang" },
-    { name: "Next.js 14", type: "frame" }, { name: "React", type: "frame" }, { name: "Node.js", type: "frame" }, { name: "Tailwind", type: "frame" }, { name: "Prisma", type: "frame" },
-    { name: "Supabase", type: "cloud" }, { name: "AWS EC2", type: "cloud" }, { name: "Vertex AI", type: "cloud" }, { name: "PostgreSQL", type: "cloud" }, { name: "Vercel", type: "cloud" },
-    { name: "Git", type: "tool" }, { name: "Docker", type: "tool" }, { name: "REST APIs", type: "tool" }, { name: "Leadership", type: "soft" }, { name: "Adaptability", type: "soft" }
-  ];
-
-  const colors = { lang: "#3b82f6", frame: "#a855f7", cloud: "#10b981", tool: "#f97316", soft: "#ec4899" };
-
   const cloudData = useMemo(() => {
     const phi = Math.PI * (3 - Math.sqrt(5));
-    const n = skills.length;
+    const n = TECH_SKILLS.length;
 
     // SPREAD FIX: Significantly larger radius
     const radius = isMobile ? 5.5 : 7.5;
     // VERTICAL STRETCH: Multiplier to make it a tall cylinder instead of a ball
     const verticalStretch = isMobile ? 1.6 : 1.2;
 
-    return skills.map((skill, i) => {
+    return TECH_SKILLS.map((skill, i) => {
       const y = 1 - (i / (n - 1)) * 2;
       const radiusAtY = Math.sqrt(1 - y * y);
       const theta = phi * i;
@@ -380,7 +383,7 @@ function TechZone() {
           <CloudTag
             key={i}
             text={item.name}
-            color={colors[item.type]}
+            color={TECH_COLORS[item.type]}
             position={item.pos}
             isMobile={isMobile} /* Pass this prop down */
           />

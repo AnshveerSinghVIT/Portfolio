@@ -1,8 +1,6 @@
 'use client';
 
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import * as THREE from 'three';
+import { useEffect, useRef } from 'react';
 
 const noise = /* glsl */ `
 vec3 mod289(vec3 x){return x-floor(x*(1.0/289.0))*289.0;}
@@ -30,6 +28,10 @@ float snoise(vec3 v){
 }`;
 
 const vertexShader = /* glsl */ `
+precision highp float;
+attribute vec3 position;
+uniform mat4 uProjection;
+uniform mat4 uModelView;
 uniform float uTime;
 uniform float uEnergy;
 uniform vec2 uMouse;
@@ -53,27 +55,27 @@ vec3 orthogonal(vec3 v){
   return normalize(abs(v.x) > abs(v.z) ? vec3(-v.y, v.x, 0.0) : vec3(0.0, -v.z, v.y));
 }
 
-vec3 displaced(vec3 p){
-  return p + normalize(p) * field(p);
-}
-
 void main(){
   vec3 n = normalize(position);
-  vec3 p = displaced(position);
+  float d = field(position);
+  vec3 p = position + n * d;
   vec3 t = orthogonal(n);
   vec3 b = normalize(cross(n, t));
   float e = 0.012;
-  vec3 pt = displaced(position + t * e);
-  vec3 pb = displaced(position + b * e);
+  vec3 qt = position + t * e;
+  vec3 qb = position + b * e;
+  vec3 pt = qt + normalize(qt) * field(qt);
+  vec3 pb = qb + normalize(qb) * field(qb);
   vec3 dn = normalize(cross(pt - p, pb - p));
-  vDisp = field(position);
-  vNormal = normalize(normalMatrix * dn);
-  vec4 mv = modelViewMatrix * vec4(p, 1.0);
+  vDisp = d;
+  vNormal = normalize(mat3(uModelView) * dn);
+  vec4 mv = uModelView * vec4(p, 1.0);
   vView = -mv.xyz;
-  gl_Position = projectionMatrix * mv;
+  gl_Position = uProjection * mv;
 }`;
 
 const fragmentShader = /* glsl */ `
+precision highp float;
 uniform float uTime;
 uniform float uHue;
 uniform vec3 uRim;
@@ -115,123 +117,231 @@ void main(){
   gl_FragColor = vec4(col, 1.0);
 }`;
 
-function Blob({ reduced }) {
-  const mesh = useRef();
-  const material = useRef();
-  const fx = useRef({ pulseAt: -1e9, partyUntil: 0 });
-  const { viewport, size } = useThree();
-  const pointer = useRef({ x: 0, y: 0, vx: 0, vy: 0 });
-  const uniforms = useMemo(
-    () => ({
-      uTime: { value: 0 },
-      uEnergy: { value: 0 },
-      uMouse: { value: new THREE.Vector2() },
-      uPulse: { value: 0 },
-      uPulseTime: { value: 0 },
-      uPulseDir: { value: new THREE.Vector2() },
-      uHue: { value: 0 },
-      uRim: { value: new THREE.Color('#ff5a1f') },
-    }),
-    []
-  );
-
-  useEffect(() => {
-    let last = { x: 0, y: 0 };
-    const move = (e) => {
-      const x = (e.clientX / innerWidth) * 2 - 1;
-      const y = -((e.clientY / innerHeight) * 2 - 1);
-      pointer.current.vx = x - last.x;
-      pointer.current.vy = y - last.y;
-      pointer.current.x = x;
-      pointer.current.y = y;
-      last = { x, y };
-    };
-    const pulse = (e) => {
-      const u = material.current?.uniforms;
-      if (!u) return;
-      u.uPulseTime.value = 0;
-      u.uPulseDir.value.set(e.detail?.x ?? 0, e.detail?.y ?? 0);
-      fx.current.pulseAt = performance.now();
-    };
-    const party = () => {
-      fx.current.partyUntil = performance.now() + 5000;
-    };
-    window.addEventListener('pointermove', move, { passive: true });
-    window.addEventListener('blob:pulse', pulse);
-    window.addEventListener('blob:party', party);
-    return () => {
-      window.removeEventListener('pointermove', move);
-      window.removeEventListener('blob:pulse', pulse);
-      window.removeEventListener('blob:party', party);
-    };
-  }, []);
-
-  const mobile = size.width < 760;
-  const baseX = 0;
-  const baseY = 0;
-  const baseScale = mobile ? 0.62 : 0.98;
-
-  useFrame((state, delta) => {
-    const m = mesh.current;
-    if (!m) return;
-    const p = pointer.current;
-    const speed = Math.min(1, Math.hypot(p.vx, p.vy) * 18);
-    p.vx *= 0.9;
-    p.vy *= 0.9;
-
-    if (!material.current) return;
-    const u = material.current.uniforms;
-    u.uTime.value += delta * (reduced.current ? 0.25 : 1);
-    const now = performance.now();
-    const since = (now - fx.current.pulseAt) / 1000;
-    u.uPulseTime.value = since;
-    u.uPulse.value = since < 4 ? Math.exp(-since * 1.4) : 0;
-    u.uHue.value += now < fx.current.partyUntil ? delta * 1.2 : 0;
-    u.uEnergy.value = THREE.MathUtils.lerp(u.uEnergy.value, speed, speed > u.uEnergy.value ? 0.12 : 0.02);
-    u.uMouse.value.x += (p.x - u.uMouse.value.x) * 0.04;
-    u.uMouse.value.y += (p.y - u.uMouse.value.y) * 0.04;
-
-    const scrollT = Math.min(1, window.scrollY / innerHeight);
-    const targetX = baseX + p.x * 0.14;
-    const targetY = baseY + p.y * 0.1 + scrollT * 0.9;
-    m.position.x = THREE.MathUtils.lerp(m.position.x, targetX, 0.05);
-    m.position.y = THREE.MathUtils.lerp(m.position.y, targetY, 0.05);
-    m.rotation.y += delta * 0.08 + p.vx * 0.4;
-    m.rotation.x = THREE.MathUtils.lerp(m.rotation.x, -p.y * 0.3, 0.05);
-    const s = baseScale * (1 - scrollT * 0.3) * (1 + u.uPulse.value * 0.06);
-    m.scale.setScalar(THREE.MathUtils.lerp(m.scale.x, s, 0.08));
+function icosphere(radius, levels) {
+  const t = (1 + Math.sqrt(5)) / 2;
+  const verts = [[-1, t, 0], [1, t, 0], [-1, -t, 0], [1, -t, 0], [0, -1, t], [0, 1, t], [0, -1, -t], [0, 1, -t], [t, 0, -1], [t, 0, 1], [-t, 0, -1], [-t, 0, 1]].map((v) => {
+    const l = Math.hypot(...v);
+    return v.map((c) => c / l);
   });
-
-  return (
-    <mesh ref={mesh} position={[baseX, baseY, 0]} scale={0.001}>
-      <icosahedronGeometry args={[1.25, mobile ? 32 : 64]} />
-      <shaderMaterial ref={material} vertexShader={vertexShader} fragmentShader={fragmentShader} uniforms={uniforms} />
-    </mesh>
-  );
+  let faces = [
+    [0, 11, 5], [0, 5, 1], [0, 1, 7], [0, 7, 10], [0, 10, 11], [1, 5, 9], [5, 11, 4], [11, 10, 2], [10, 7, 6], [7, 1, 8],
+    [3, 9, 4], [3, 4, 2], [3, 2, 6], [3, 6, 8], [3, 8, 9], [4, 9, 5], [2, 4, 11], [6, 2, 10], [8, 6, 7], [9, 8, 1],
+  ];
+  for (let l = 0; l < levels; l++) {
+    const cache = new Map();
+    const mid = (a, b) => {
+      const key = a < b ? a * 1e6 + b : b * 1e6 + a;
+      let i = cache.get(key);
+      if (i === undefined) {
+        const m = [0, 1, 2].map((k) => (verts[a][k] + verts[b][k]) / 2);
+        const len = Math.hypot(...m);
+        i = verts.push(m.map((c) => c / len)) - 1;
+        cache.set(key, i);
+      }
+      return i;
+    };
+    faces = faces.flatMap(([a, b, c]) => {
+      const ab = mid(a, b);
+      const bc = mid(b, c);
+      const ca = mid(c, a);
+      return [[a, ab, ca], [b, bc, ab], [c, ca, bc], [ab, bc, ca]];
+    });
+  }
+  const positions = new Float32Array(verts.length * 3);
+  verts.forEach((v, i) => positions.set([v[0] * radius, v[1] * radius, v[2] * radius], i * 3));
+  const Index = verts.length > 65535 ? Uint32Array : Uint16Array;
+  return { positions, indices: new Index(faces.flat()) };
 }
+
+function perspective(fovY, aspect, near, far) {
+  const f = 1 / Math.tan(fovY / 2);
+  const nf = 1 / (near - far);
+  return new Float32Array([f / aspect, 0, 0, 0, 0, f, 0, 0, 0, 0, (far + near) * nf, -1, 0, 0, 2 * far * near * nf, 0]);
+}
+
+// Column-major T(x, y, z - camZ) · Rx · Ry · S, matching the previous three.js Euler XYZ setup.
+function modelView(x, y, camZ, rx, ry, s) {
+  const cx = Math.cos(rx);
+  const sx = Math.sin(rx);
+  const cy = Math.cos(ry);
+  const sy = Math.sin(ry);
+  return new Float32Array([
+    cy * s, sx * sy * s, -cx * sy * s, 0,
+    0, cx * s, sx * s, 0,
+    sy * s, -sx * cy * s, cx * cy * s, 0,
+    x, y, -camZ, 1,
+  ]);
+}
+
+function compile(gl, type, src) {
+  const sh = gl.createShader(type);
+  gl.shaderSource(sh, src);
+  gl.compileShader(sh);
+  if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(sh));
+  return sh;
+}
+
+const CAM_Z = 4.2;
+const FOV = (45 * Math.PI) / 180;
 
 export default function HeroBlob() {
   const wrap = useRef(null);
-  const [visible, setVisible] = useState(true);
-  const reduced = useRef(false);
+  const canvasRef = useRef(null);
 
   useEffect(() => {
-    reduced.current = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const io = new IntersectionObserver(([e]) => setVisible(e.isIntersecting));
-    if (wrap.current) io.observe(wrap.current);
-    return () => io.disconnect();
+    const canvas = canvasRef.current;
+    const gl = canvas.getContext('webgl2', { antialias: true, alpha: true, premultipliedAlpha: true, powerPreference: 'high-performance' }) || canvas.getContext('webgl', { antialias: true, alpha: true });
+    if (!gl) return;
+    const webgl2 = typeof WebGL2RenderingContext !== 'undefined' && gl instanceof WebGL2RenderingContext;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const coarse = window.matchMedia('(pointer: coarse)').matches;
+    const uintOk = webgl2 || !!gl.getExtension('OES_element_index_uint');
+
+    let program;
+    try {
+      program = gl.createProgram();
+      gl.attachShader(program, compile(gl, gl.VERTEX_SHADER, vertexShader));
+      gl.attachShader(program, compile(gl, gl.FRAGMENT_SHADER, fragmentShader));
+      gl.linkProgram(program);
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program));
+    } catch (err) {
+      console.warn('Hero shader failed', err);
+      return;
+    }
+    gl.useProgram(program);
+
+    const { positions, indices } = icosphere(1.25, coarse || !uintOk ? 5 : 6);
+    const pos = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, pos);
+    gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(program, 'position');
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 3, gl.FLOAT, false, 0, 0);
+    const idx = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, idx);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+    const indexType = indices instanceof Uint32Array ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT;
+
+    const U = Object.fromEntries(
+      ['uProjection', 'uModelView', 'uTime', 'uEnergy', 'uMouse', 'uPulse', 'uPulseTime', 'uPulseDir', 'uHue', 'uRim'].map((n) => [n, gl.getUniformLocation(program, n)])
+    );
+    gl.uniform3f(U.uRim, 1, 90 / 255, 31 / 255);
+    gl.enable(gl.DEPTH_TEST);
+    gl.clearColor(0, 0, 0, 0);
+
+    const state = { time: 0, energy: 0, mx: 0, my: 0, hue: 0, x: 0, y: 0, rx: 0, ry: 0, s: 0.001, pulseAt: -1e9, partyUntil: 0, pdx: 0, pdy: 0 };
+    const pointer = { x: 0, y: 0, vx: 0, vy: 0, lx: 0, ly: 0 };
+    let aspect = 1;
+    let mobile = false;
+
+    const resize = () => {
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      const dpr = Math.min(window.devicePixelRatio || 1, coarse ? 1.5 : 1.75);
+      canvas.width = Math.max(1, Math.round(w * dpr));
+      canvas.height = Math.max(1, Math.round(h * dpr));
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      aspect = w / Math.max(1, h);
+      mobile = w < 760;
+      gl.uniformMatrix4fv(U.uProjection, false, perspective(FOV, aspect, 0.1, 100));
+    };
+    const ro = new ResizeObserver(resize);
+    ro.observe(canvas);
+    resize();
+
+    const move = (e) => {
+      const x = (e.clientX / innerWidth) * 2 - 1;
+      const y = -((e.clientY / innerHeight) * 2 - 1);
+      pointer.vx = x - pointer.lx;
+      pointer.vy = y - pointer.ly;
+      pointer.x = pointer.lx = x;
+      pointer.y = pointer.ly = y;
+    };
+    const pulse = (e) => {
+      state.pulseAt = performance.now();
+      state.pdx = e.detail?.x ?? 0;
+      state.pdy = e.detail?.y ?? 0;
+    };
+    const party = () => (state.partyUntil = performance.now() + 5000);
+    window.addEventListener('pointermove', move, { passive: true });
+    window.addEventListener('blob:pulse', pulse);
+    window.addEventListener('blob:party', party);
+
+    let raf = 0;
+    let last = performance.now();
+    let visible = true;
+    const lerp = (a, b, t) => a + (b - a) * t;
+
+    const frame = (now) => {
+      raf = 0;
+      const delta = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      const p = pointer;
+      const speed = Math.min(1, Math.hypot(p.vx, p.vy) * 18);
+      p.vx *= 0.9;
+      p.vy *= 0.9;
+
+      state.time += delta * (reduced ? 0.25 : 1);
+      const since = (now - state.pulseAt) / 1000;
+      const pulseAmt = since < 4 ? Math.exp(-since * 1.4) : 0;
+      if (now < state.partyUntil) state.hue += delta * 1.2;
+      state.energy = lerp(state.energy, speed, speed > state.energy ? 0.12 : 0.02);
+      state.mx += (p.x - state.mx) * 0.04;
+      state.my += (p.y - state.my) * 0.04;
+
+      const scrollT = Math.min(1, window.scrollY / innerHeight);
+      state.x = lerp(state.x, p.x * 0.14, 0.05);
+      state.y = lerp(state.y, p.y * 0.1 + scrollT * 0.9, 0.05);
+      state.ry += delta * 0.08 + p.vx * 0.4;
+      state.rx = lerp(state.rx, -p.y * 0.3, 0.05);
+      const target = (mobile ? 0.62 : 0.98) * (1 - scrollT * 0.3) * (1 + pulseAmt * 0.06);
+      state.s = lerp(state.s, target, 0.08);
+
+      gl.uniform1f(U.uTime, state.time);
+      gl.uniform1f(U.uEnergy, state.energy);
+      gl.uniform2f(U.uMouse, state.mx, state.my);
+      gl.uniform1f(U.uPulse, pulseAmt);
+      gl.uniform1f(U.uPulseTime, since);
+      gl.uniform2f(U.uPulseDir, state.pdx, state.pdy);
+      gl.uniform1f(U.uHue, state.hue);
+      gl.uniformMatrix4fv(U.uModelView, false, modelView(state.x, state.y, CAM_Z, state.rx, state.ry, state.s));
+
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      gl.drawElements(gl.TRIANGLES, indices.length, indexType, 0);
+      if (visible && !document.hidden) raf = requestAnimationFrame(frame);
+    };
+    const start = () => {
+      if (!raf && visible && !document.hidden) {
+        last = performance.now();
+        raf = requestAnimationFrame(frame);
+      }
+    };
+
+    const io = new IntersectionObserver(([e]) => {
+      visible = e.isIntersecting;
+      start();
+    });
+    io.observe(wrap.current);
+    document.addEventListener('visibilitychange', start);
+    start();
+
+    return () => {
+      cancelAnimationFrame(raf);
+      io.disconnect();
+      ro.disconnect();
+      document.removeEventListener('visibilitychange', start);
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('blob:pulse', pulse);
+      window.removeEventListener('blob:party', party);
+      gl.deleteBuffer(pos);
+      gl.deleteBuffer(idx);
+      gl.deleteProgram(program);
+    };
   }, []);
 
   return (
     <div ref={wrap} className="hero__gl" aria-hidden="true">
-      <Canvas
-        frameloop={visible ? 'always' : 'never'}
-        dpr={[1, 1.75]}
-        camera={{ position: [0, 0, 4.2], fov: 45 }}
-        gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
-      >
-        <Blob reduced={reduced} />
-      </Canvas>
+      <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />
     </div>
   );
 }

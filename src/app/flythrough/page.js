@@ -3,7 +3,8 @@ import SmartAIChatWrapper from '@/components/SmartAIChatWrapper';
 import ViewToggle from '@/components/ViewToggle';
 
 export const metadata = {
-  title: 'Anshveer Singh | 3D Flythrough',
+  title: '3D Flythrough',
+  description: 'Fly through Anshveer Singh’s portfolio in 3D — projects, skills and experience in a WebGL scene.',
   alternates: { canonical: '/' },
 };
 

@@ -19,7 +19,7 @@ export default function LoadingScreen() {
 
         {/* Text */}
         <h2 className="text-2xl md:text-3xl font-light tracking-[0.2em] uppercase text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-slate-200 to-orange-400 animate-pulse text-center px-4">
-          Welcome to Anshveer's Portfolio
+          Welcome to Anshveer&apos;s Portfolio
         </h2>
         
         <p className="mt-4 text-xs tracking-[0.4em] text-slate-500 uppercase font-bold">

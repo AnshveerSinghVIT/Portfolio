@@ -21,7 +21,7 @@ export default function Preloader() {
     }
     const repeat = sessionStorage.getItem('as-visited') === '1';
     sessionStorage.setItem('as-visited', '1');
-    const duration = repeat ? 700 : 2200;
+    const duration = repeat ? 600 : 1600;
     lockScroll(true);
     window.scrollTo(0, 0);
 

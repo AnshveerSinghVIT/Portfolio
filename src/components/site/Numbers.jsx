@@ -42,7 +42,11 @@ export default function Numbers() {
         {stats.map((s, i) => (
           <li key={s.label} className="numbers__item" data-stat={i}>
             <span className="numbers__bar" aria-hidden="true" />
-            <span className="numbers__value" aria-label={`${format(s.value, s)}${s.suffix ?? ''}`}>
+            <span className="sr-only">
+              {format(s.value, s)}
+              {s.suffix}
+            </span>
+            <span className="numbers__value" aria-hidden="true">
               <span className="numbers__value-num tabular" aria-hidden="true">
                 {format(s.value, s)}
               </span>

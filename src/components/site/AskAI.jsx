@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { aiSectionMap, sections } from '@/lib/data';
 import { scrollToId } from '@/lib/scroll';
+import EmailForm from './EmailForm';
 
 const CHIPS = ['What did you build at Dell?', 'Show me your projects', 'What’s your tech stack?', 'How do I contact you?'];
 const GREETING = 'Hi — I’m Anshveer’s AI. Ask me about his work, skills or experience, and I’ll take you to the right part of the page.';
@@ -18,52 +19,6 @@ const FALLBACK_NAV = [
 function guessNav(text) {
   const t = text.toLowerCase();
   return FALLBACK_NAV.find(([, keys]) => keys.some((k) => t.includes(k)))?.[0] ?? 'none';
-}
-
-export function EmailForm({ onDone, title = 'Send Anshveer a message', className = 'ai__form' }) {
-  const [state, setState] = useState('idle');
-  const submit = async (e) => {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const data = Object.fromEntries(new FormData(form));
-    setState('sending');
-    try {
-      const res = await fetch('/api/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-      if (!res.ok) throw new Error();
-      form.reset();
-      setState('idle');
-      onDone('Sent! Anshveer will get back to you soon — check your inbox for a confirmation.');
-    } catch {
-      setState('error');
-    }
-  };
-  return (
-    <form className={className} onSubmit={submit}>
-      <p className="ai__form-title mono">{title}</p>
-      <label>
-        <span>Your email</span>
-        <input name="email" type="email" required autoComplete="email" spellCheck="false" placeholder="you@company.com" />
-      </label>
-      <label>
-        <span>Subject</span>
-        <input name="subject" type="text" autoComplete="off" placeholder="Internship opportunity…" />
-      </label>
-      <label>
-        <span>Message</span>
-        <textarea
-          name="message"
-          required
-          rows={3}
-          placeholder="Hi Anshveer…"
-          onKeyDown={(e) => (e.metaKey || e.ctrlKey) && e.key === 'Enter' && e.currentTarget.form.requestSubmit()}
-        />
-      </label>
-      {state === 'error' && <p className="ai__error">Couldn’t send that. Try again, or use the email link in Contact.</p>}
-      <button type="submit" className="btn btn--accent" disabled={state === 'sending'}>
-        {state === 'sending' ? 'Sending…' : 'Send message'}
-      </button>
-    </form>
-  );
 }
 
 export default function AskAI() {
@@ -139,7 +94,7 @@ export default function AskAI() {
 
   return (
     <>
-      <button ref={launcher} type="button" className="ai__launcher" data-open={open} onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-controls="ai-panel" data-cursor={open ? 'Close' : 'Ask'}>
+      <button ref={launcher} type="button" className="ai__launcher" data-open={open} onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-controls="ai-panel" aria-label={open ? 'Close AI chat' : 'Ask my AI'} data-cursor={open ? 'Close' : 'Ask'}>
         <span className="ai__orb" aria-hidden="true" />
         <span className="ai__launcher-text">{open ? 'Close' : 'Ask my AI'}</span>
       </button>

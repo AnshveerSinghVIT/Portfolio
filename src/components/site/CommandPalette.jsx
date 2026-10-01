@@ -48,6 +48,7 @@ export default function CommandPalette() {
 
   useEffect(() => {
     const onKey = (e) => {
+      if (typeof e.key !== 'string') return;
       const typing = /INPUT|TEXTAREA/.test(document.activeElement?.tagName ?? '');
       if ((e.key.toLowerCase() === 'k' && (e.metaKey || e.ctrlKey)) || (e.key === '/' && !typing)) {
         e.preventDefault();

@@ -2,8 +2,6 @@ import SmoothScroll from '@/components/site/SmoothScroll';
 import Preloader from '@/components/site/Preloader';
 import Cursor from '@/components/site/Cursor';
 import Nav from '@/components/site/Nav';
-import CommandPalette from '@/components/site/CommandPalette';
-import CaseDrawer from '@/components/site/CaseDrawer';
 import Toast from '@/components/site/Toast';
 import Hero from '@/components/site/Hero';
 import Manifesto from '@/components/site/Manifesto';
@@ -15,10 +13,10 @@ import Arsenal from '@/components/site/Arsenal';
 import ExperienceSection from '@/components/site/ExperienceSection';
 import Beyond from '@/components/site/Beyond';
 import Contact from '@/components/site/Contact';
-import AskAI from '@/components/site/AskAI';
-import EasterEggs from '@/components/site/EasterEggs';
+import Overlays from '@/components/site/Overlays';
 import ViewToggle from '@/components/ViewToggle';
-import { profile } from '@/lib/data';
+import { profile, projects, skills } from '@/lib/data';
+import { SITE_URL } from '@/lib/site';
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -27,10 +25,13 @@ const jsonLd = {
   jobTitle: profile.role,
   email: `mailto:${profile.email}`,
   address: { '@type': 'PostalAddress', addressLocality: 'Bengaluru', addressCountry: 'IN' },
-  alumniOf: { '@type': 'CollegeOrUniversity', name: 'Vellore Institute of Technology' },
-  url: 'https://anshveersingh.vercel.app',
-  image: 'https://anshveersingh.vercel.app/profile4.jpg',
+  alumniOf: { '@type': 'CollegeOrUniversity', name: 'Vellore Institute of Technology', address: 'Vellore, Tamil Nadu, India' },
+  url: SITE_URL,
+  image: `${SITE_URL}/profile4.jpg`,
   sameAs: profile.socials.map((s) => s.url),
+  knowsAbout: Object.values(skills).flat().slice(0, 30),
+  hasOccupation: { '@type': 'Occupation', name: 'Software Engineer' },
+  workExample: projects.filter((p) => p.url).map((p) => ({ '@type': 'CreativeWork', name: p.title, description: p.summary, url: p.url })),
 };
 
 export default function Home() {
@@ -56,11 +57,8 @@ export default function Home() {
         <Beyond />
         <Contact />
       </main>
-      <CommandPalette />
-      <CaseDrawer />
-      <AskAI />
+      <Overlays />
       <ViewToggle current="editorial" />
-      <EasterEggs />
       <Toast />
     </>
   );

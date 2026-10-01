@@ -14,12 +14,14 @@ export default function Work() {
     const el = preview.current;
     const pos = { x: innerWidth / 2, y: innerHeight / 2 };
     const cur = { ...pos };
-    let raf;
+    let raf = 0;
     const move = (e) => {
       pos.x = e.clientX;
       pos.y = e.clientY;
+      if (!raf) raf = requestAnimationFrame(loop);
     };
     const loop = () => {
+      raf = 0;
       const dx = pos.x - cur.x;
       cur.x += dx * 0.12;
       cur.y += (pos.y - cur.y) * 0.12;
@@ -29,9 +31,8 @@ export default function Work() {
       const x = Math.min(cur.x + 48, innerWidth - w - 24);
       const y = Math.max(24, Math.min(cur.y - h / 2, innerHeight - h - 24));
       el.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${skew * 0.5}deg) skewX(${skew}deg)`;
-      raf = requestAnimationFrame(loop);
+      if (Math.abs(dx) > 0.3 || Math.abs(pos.y - cur.y) > 0.3) raf = requestAnimationFrame(loop);
     };
-    loop();
     window.addEventListener('pointermove', move, { passive: true });
     return () => {
       cancelAnimationFrame(raf);
@@ -64,9 +65,9 @@ export default function Work() {
               onBlur={() => setHovered(null)}
               onClick={() => emit('case:open', p.id)}
               data-cursor="Open case"
-              aria-label={`Open case file: ${p.title}, ${p.kind}`}
             >
-              <span className="work__index mono">{String(i + 1).padStart(2, '0')}</span>
+              <span className="sr-only">Open case file: </span>
+              <span className="work__index mono" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
               <span className="work__title">
                 <span className="work__title-text">{p.title}</span>
                 <span className="work__title-text work__title-text--alt serif" aria-hidden="true">

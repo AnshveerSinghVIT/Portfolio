@@ -8,8 +8,8 @@ const AWAY_TITLE = "Hey, come back! 👋";
 const FAVICON_ID = "dynamic-favicon";
 const SIZE = 64;
 const RADIUS = 14;
-// Redraw at ~18fps. Plenty smooth for an icon rendered at 16-32px, far cheaper than 60fps.
-const FRAME_INTERVAL = 55;
+// Redraw at ~9fps: plenty for a 16-32px icon, and each frame is a full PNG encode.
+const FRAME_INTERVAL = 110;
 
 function getFaviconLink() {
   let link = document.getElementById(FAVICON_ID);
@@ -168,6 +168,10 @@ export default function DynamicFavicon() {
   useEffect(() => {
     const link = getFaviconLink();
     const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    // Phones don't show tab favicons, so skip the per-frame canvas encode there.
+    const staticOnly = () => reducedMotionQuery.matches || window.matchMedia("(pointer: coarse)").matches;
+    const pageTitle = document.title || ORIGINAL_TITLE;
+    let startTimer = null;
 
     let start = null;
     let lastDraw = -Infinity;
@@ -183,6 +187,7 @@ export default function DynamicFavicon() {
     };
 
     const stopFocusedAnimation = () => {
+      clearTimeout(startTimer);
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current);
         rafRef.current = null;
@@ -210,15 +215,15 @@ export default function DynamicFavicon() {
 
     const applyFocusedState = () => {
       stopWaveAnimation();
-      document.title = ORIGINAL_TITLE;
-
-      if (reducedMotionQuery.matches) {
-        link.href = drawFocusedIcon(0, true);
-        return;
-      }
+      document.title = pageTitle;
+      link.href = drawFocusedIcon(0, true);
+      if (staticOnly()) return;
       start = null;
       lastDraw = -Infinity;
-      rafRef.current = requestAnimationFrame(animateFocused);
+      clearTimeout(startTimer);
+      startTimer = setTimeout(() => {
+        rafRef.current = requestAnimationFrame(animateFocused);
+      }, document.readyState === "complete" ? 1500 : 5000);
     };
 
     const handleVisibilityChange = () => {
@@ -241,7 +246,7 @@ export default function DynamicFavicon() {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       stopFocusedAnimation();
       stopWaveAnimation();
-      document.title = ORIGINAL_TITLE;
+      document.title = pageTitle;
     };
   }, []);
 

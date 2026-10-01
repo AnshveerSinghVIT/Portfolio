@@ -14,7 +14,8 @@ export default function EasterEggs() {
     );
     let i = 0;
     const onKey = (e) => {
-      i = e.key === KONAMI[i] || e.key.toLowerCase() === KONAMI[i] ? i + 1 : e.key === KONAMI[0] ? 1 : 0;
+      if (typeof e.key !== 'string') return;
+      i =e.key === KONAMI[i] || e.key.toLowerCase() === KONAMI[i] ? i + 1 : e.key === KONAMI[0] ? 1 : 0;
       if (i === KONAMI.length) {
         i = 0;
         emit('blob:party');
