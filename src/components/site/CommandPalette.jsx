@@ -19,6 +19,7 @@ function buildCommands() {
   return [
     ...sections.map((s) => ({ id: `go-${s.id}`, group: 'Navigate', label: s.label, hint: 'Jump to', run: () => scrollToId(s.id) })),
     ...projects.map((p) => ({ id: `case-${p.id}`, group: 'Case files', label: p.title, hint: p.kind, run: () => emit('case:open', p.id) })),
+    { id: 'ask-ai', group: 'Actions', label: 'Ask my AI', hint: 'chat', run: () => emit('ai:ask') },
     { id: 'copy-email', group: 'Actions', label: 'Copy email address', hint: profile.email, run: copyEmail },
     { id: 'resume', group: 'Actions', label: 'Open résumé', hint: 'PDF', run: open(profile.resume) },
     { id: 'mail', group: 'Actions', label: 'Write an email', hint: 'mailto', run: () => (window.location.href = `mailto:${profile.email}`) },
@@ -35,9 +36,12 @@ export default function CommandPalette() {
   const commands = useMemo(() => buildCommands(), []);
 
   const results = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const raw = query.trim();
+    const q = raw.toLowerCase();
     if (!q) return commands;
-    return commands.filter((c) => `${c.group} ${c.label} ${c.hint}`.toLowerCase().includes(q));
+    const matches = commands.filter((c) => `${c.group} ${c.label} ${c.hint}`.toLowerCase().includes(q));
+    const askItem = { id: 'ask-query', group: 'Ask AI', label: `Ask: “${raw}”`, hint: 'AI answers', run: () => emit('ai:ask', raw) };
+    return raw.includes(' ') || matches.length === 0 ? [askItem, ...matches] : [...matches, askItem];
   }, [query, commands]);
 
   const close = useCallback(() => setOpen(false), []);
@@ -138,7 +142,7 @@ export default function CommandPalette() {
                   setIndex(0);
                 }}
                 onKeyDown={onKeyDown}
-                placeholder="Where to? Try work, email, vall…"
+                placeholder="Jump anywhere, or ask my AI a question…"
                 aria-label="Search commands"
                 role="combobox"
                 aria-expanded="true"

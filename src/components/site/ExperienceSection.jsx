@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -18,7 +19,11 @@ export default function ExperienceSection() {
           { scaleX: 0 },
           { scaleX: 1, ease: 'none', scrollTrigger: { trigger: item, start: 'top 85%', end: 'top 45%', scrub: true } }
         );
-        gsap.from(item.querySelectorAll('.exp__fade'), {
+        const media = item.querySelector('.exp__media');
+        if (media) {
+          gsap.fromTo(media, { clipPath: 'inset(0 0 100% 0 round 14px)' }, { clipPath: 'inset(0 0 0% 0 round 14px)', duration: 1.4, ease: 'power4.inOut', scrollTrigger: { trigger: media, start: 'top 85%' } });
+        }
+        gsap.from(item.querySelectorAll('.exp__fade:not(.exp__media)'), {
           y: 40,
           opacity: 0,
           stagger: 0.08,
@@ -35,7 +40,7 @@ export default function ExperienceSection() {
     <section id="experience" ref={root} className="exp" aria-labelledby="exp-title">
       <div className="section-head">
         <div className="label mono">
-          <span>(03)</span>
+          <span>(04)</span>
           <span>Experience</span>
         </div>
         <h2 id="exp-title" className="display">
@@ -48,8 +53,15 @@ export default function ExperienceSection() {
           <li key={e.company} className="exp__item">
             <span className="exp__rule" aria-hidden="true" />
             <div className="exp__left">
-              <span className="exp__period mono exp__fade">{e.period}</span>
+              <span className="exp__period mono exp__fade">
+                {e.period} · {e.place}
+              </span>
               <h3 className="exp__company exp__fade">{e.company}</h3>
+              {e.image && (
+                <div className="exp__media exp__fade">
+                  <Image src={e.image} alt={`${e.company} office`} fill sizes="(max-width: 760px) 100vw, 40vw" />
+                </div>
+              )}
             </div>
             <div className="exp__right">
               <p className="exp__role exp__fade">{e.role}</p>

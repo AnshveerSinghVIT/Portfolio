@@ -2,23 +2,31 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+const ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+const escapeHtml = (value = '') => String(value).replace(/[&<>"']/g, (c) => ESCAPES[c]);
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export async function POST(request) {
   try {
     const { email, subject, message } = await request.json();
+    if (typeof email !== 'string' || !EMAIL_RE.test(email) || typeof message !== 'string' || !message.trim()) {
+      return Response.json({ error: 'A valid email and message are required.' }, { status: 400 });
+    }
+    const safeSubject = String(subject || 'New message').replace(/[\r\n]+/g, ' ').slice(0, 150);
 
     // 1. Send notification to Anshveer
     const notifyAnshveer = resend.emails.send({
       from: 'Anshveer Portfolio <noreply@anshveersingh.in>',
       to: ['singhanshveer73@gmail.com'],
       reply_to: email,
-      subject: `PORTFOLIO: ${subject || 'New message'}`,
+      subject: `PORTFOLIO: ${safeSubject}`,
       html: `
         <div style="font-family: sans-serif; padding: 20px;">
           <h2>New Message from Portfolio AI Chat</h2>
-          <p><strong>From:</strong> ${email}</p>
+          <p><strong>From:</strong> ${escapeHtml(email)}</p>
           <hr />
           <p><strong>Message:</strong></p>
-          <p style="white-space: pre-wrap;">${message}</p>
+          <p style="white-space: pre-wrap;">${escapeHtml(message.slice(0, 5000))}</p>
         </div>
       `,
     });

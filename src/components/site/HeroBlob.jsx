@@ -33,6 +33,9 @@ const vertexShader = /* glsl */ `
 uniform float uTime;
 uniform float uEnergy;
 uniform vec2 uMouse;
+uniform float uPulse;
+uniform float uPulseTime;
+uniform vec2 uPulseDir;
 varying vec3 vNormal;
 varying vec3 vView;
 varying float vDisp;
@@ -42,7 +45,8 @@ float field(vec3 p){
   vec3 q = p + vec3(uMouse * 0.6, 0.0);
   float slow = snoise(q * 0.9 + vec3(0.0, uTime * 0.18, uTime * 0.1));
   float fine = snoise(q * 2.6 - vec3(uTime * 0.35));
-  return slow * (0.28 + uEnergy * 0.22) + fine * (0.05 + uEnergy * 0.08);
+  float wave = sin(dot(normalize(p), normalize(vec3(uPulseDir, 0.7))) * 9.0 - uPulseTime * 11.0) * uPulse;
+  return slow * (0.28 + uEnergy * 0.22) + fine * (0.05 + uEnergy * 0.08) + wave * 0.16;
 }
 
 vec3 orthogonal(vec3 v){
@@ -71,6 +75,7 @@ void main(){
 
 const fragmentShader = /* glsl */ `
 uniform float uTime;
+uniform float uHue;
 uniform vec3 uRim;
 varying vec3 vNormal;
 varying vec3 vView;
@@ -90,7 +95,7 @@ void main(){
   float facing = max(dot(N, V), 0.0);
   float fres = pow(1.0 - facing, 2.4);
 
-  vec3 col = palette(vDisp * 1.8 + N.y * 0.35 + N.x * 0.2 + uTime * 0.025);
+  vec3 col = palette(vDisp * 1.8 + N.y * 0.35 + N.x * 0.2 + uTime * 0.025 + uHue);
 
   vec3 L1 = normalize(vec3(0.4, 0.9, 0.7));
   vec3 L2 = normalize(vec3(-0.8, -0.3, 0.4));
@@ -113,6 +118,7 @@ void main(){
 function Blob({ reduced }) {
   const mesh = useRef();
   const material = useRef();
+  const fx = useRef({ pulseAt: -1e9, partyUntil: 0 });
   const { viewport, size } = useThree();
   const pointer = useRef({ x: 0, y: 0, vx: 0, vy: 0 });
   const uniforms = useMemo(
@@ -120,6 +126,10 @@ function Blob({ reduced }) {
       uTime: { value: 0 },
       uEnergy: { value: 0 },
       uMouse: { value: new THREE.Vector2() },
+      uPulse: { value: 0 },
+      uPulseTime: { value: 0 },
+      uPulseDir: { value: new THREE.Vector2() },
+      uHue: { value: 0 },
       uRim: { value: new THREE.Color('#ff5a1f') },
     }),
     []
@@ -136,14 +146,30 @@ function Blob({ reduced }) {
       pointer.current.y = y;
       last = { x, y };
     };
+    const pulse = (e) => {
+      const u = material.current?.uniforms;
+      if (!u) return;
+      u.uPulseTime.value = 0;
+      u.uPulseDir.value.set(e.detail?.x ?? 0, e.detail?.y ?? 0);
+      fx.current.pulseAt = performance.now();
+    };
+    const party = () => {
+      fx.current.partyUntil = performance.now() + 5000;
+    };
     window.addEventListener('pointermove', move, { passive: true });
-    return () => window.removeEventListener('pointermove', move);
+    window.addEventListener('blob:pulse', pulse);
+    window.addEventListener('blob:party', party);
+    return () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('blob:pulse', pulse);
+      window.removeEventListener('blob:party', party);
+    };
   }, []);
 
   const mobile = size.width < 760;
-  const baseX = mobile ? 0 : viewport.width * 0.22;
-  const baseY = mobile ? viewport.height * 0.12 : 0;
-  const baseScale = mobile ? 0.7 : 1.02;
+  const baseX = 0;
+  const baseY = mobile ? viewport.height * 0.04 : 0;
+  const baseScale = mobile ? 0.62 : 0.98;
 
   useFrame((state, delta) => {
     const m = mesh.current;
@@ -156,18 +182,23 @@ function Blob({ reduced }) {
     if (!material.current) return;
     const u = material.current.uniforms;
     u.uTime.value += delta * (reduced.current ? 0.25 : 1);
+    const now = performance.now();
+    const since = (now - fx.current.pulseAt) / 1000;
+    u.uPulseTime.value = since;
+    u.uPulse.value = since < 4 ? Math.exp(-since * 1.4) : 0;
+    u.uHue.value += now < fx.current.partyUntil ? delta * 1.2 : 0;
     u.uEnergy.value = THREE.MathUtils.lerp(u.uEnergy.value, speed, speed > u.uEnergy.value ? 0.12 : 0.02);
     u.uMouse.value.x += (p.x - u.uMouse.value.x) * 0.04;
     u.uMouse.value.y += (p.y - u.uMouse.value.y) * 0.04;
 
     const scrollT = Math.min(1, window.scrollY / innerHeight);
-    const targetX = baseX + p.x * 0.35;
-    const targetY = baseY + p.y * 0.25 + scrollT * 1.2;
+    const targetX = baseX + p.x * 0.22;
+    const targetY = baseY + p.y * 0.16 + scrollT * 0.9;
     m.position.x = THREE.MathUtils.lerp(m.position.x, targetX, 0.05);
     m.position.y = THREE.MathUtils.lerp(m.position.y, targetY, 0.05);
     m.rotation.y += delta * 0.08 + p.vx * 0.4;
     m.rotation.x = THREE.MathUtils.lerp(m.rotation.x, -p.y * 0.3, 0.05);
-    const s = baseScale * (1 - scrollT * 0.35);
+    const s = baseScale * (1 - scrollT * 0.3) * (1 + u.uPulse.value * 0.06);
     m.scale.setScalar(THREE.MathUtils.lerp(m.scale.x, s, 0.08));
   });
 

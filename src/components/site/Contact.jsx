@@ -6,6 +6,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { profile } from '@/lib/data';
 import { emit, scrollToId } from '@/lib/scroll';
 import Magnetic from './Magnetic';
+import { EmailForm } from './AskAI';
 import LocalTime from './LocalTime';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -44,7 +45,7 @@ export default function Contact() {
   return (
     <section id="contact" ref={root} className="contact" aria-labelledby="contact-title">
       <div className="label mono">
-        <span>(04)</span>
+        <span>(06)</span>
         <span>Contact</span>
       </div>
 
@@ -69,6 +70,10 @@ export default function Contact() {
         <a href={`mailto:${profile.email}`} className="link-underline mono">
           or open your mail app ↗
         </a>
+      </div>
+
+      <div className="contact__form-wrap">
+        <EmailForm className="contact__form" title="Or leave a note — it lands straight in my inbox" onDone={(t) => emit('toast', t)} />
       </div>
 
       <ul className="contact__links">

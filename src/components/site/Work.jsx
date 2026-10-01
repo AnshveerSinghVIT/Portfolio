@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { projects } from '@/lib/data';
+import { alsoBuilt, projects } from '@/lib/data';
 import { emit } from '@/lib/scroll';
 import ProjectVisual from './ProjectVisual';
 
@@ -50,7 +50,7 @@ export default function Work() {
           Things I&apos;ve <em className="serif">built</em>
           <sup className="mono">({String(projects.length).padStart(2, '0')})</sup>
         </h2>
-        <p className="section-sub">Open any project for its full case file. On a keyboard, ⌘K jumps anywhere.</p>
+        <p className="section-sub">Open any project for its full case file. On a keyboard, ⌘&nbsp;K jumps anywhere.</p>
       </div>
 
       <ul className="work__list" data-hovering={hovered !== null} onMouseLeave={() => setHovered(null)}>
@@ -66,14 +66,17 @@ export default function Work() {
               data-cursor="Open case"
               aria-label={`Open case file: ${p.title}, ${p.kind}`}
             >
-              <span className="work__index mono">{p.index}</span>
+              <span className="work__index mono">{String(i + 1).padStart(2, '0')}</span>
               <span className="work__title">
                 <span className="work__title-text">{p.title}</span>
                 <span className="work__title-text work__title-text--alt serif" aria-hidden="true">
                   {p.title}
                 </span>
               </span>
-              <span className="work__kind">{p.kind}</span>
+              <span className="work__kind">
+                {p.kind}
+                <span className="work__context mono">{p.context}</span>
+              </span>
               <span className="work__stack mono">{p.stack.join(' / ')}</span>
               <span className="work__arrow" aria-hidden="true">
                 ↗
@@ -85,11 +88,19 @@ export default function Work() {
           </li>
         ))}
       </ul>
+      <p className="work__also mono">
+        Also built —{' '}
+        {alsoBuilt.map((a) => (
+          <span key={a.title}>
+            <strong>{a.title}</strong>, {a.kind.toLowerCase()}
+          </span>
+        ))}
+      </p>
 
       <div ref={preview} className="work__preview" data-show={hovered !== null} aria-hidden="true">
         {projects.map((p, i) => (
           <div key={p.id} className="work__preview-slide" data-active={hovered === i}>
-            <ProjectVisual project={p} sizes="420px" />
+            <ProjectVisual project={p} sizes="440px" />
           </div>
         ))}
       </div>

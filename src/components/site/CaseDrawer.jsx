@@ -26,8 +26,24 @@ export default function CaseDrawer() {
       if (i >= 0) setIndex(i);
     };
     window.addEventListener('case:open', onOpen);
-    return () => window.removeEventListener('case:open', onOpen);
+    const initial = new URLSearchParams(location.search).get('case');
+    const openInitial = () => onOpen({ detail: initial });
+    if (initial) {
+      if (document.documentElement.classList.contains('is-ready')) openInitial();
+      else window.addEventListener('preloader:done', openInitial, { once: true });
+    }
+    return () => {
+      window.removeEventListener('case:open', onOpen);
+      window.removeEventListener('preloader:done', openInitial);
+    };
   }, []);
+
+  useEffect(() => {
+    const url = new URL(location.href);
+    if (p) url.searchParams.set('case', p.id);
+    else url.searchParams.delete('case');
+    history.replaceState(history.state, '', url);
+  }, [p]);
 
   useEffect(() => {
     if (!open) return;
@@ -83,7 +99,7 @@ export default function CaseDrawer() {
           >
             <div className="drawer__bar mono">
               <span>
-                Case file {p.index} / {String(projects.length).padStart(2, '0')}
+                Case file {String(index + 1).padStart(2, '0')} / {String(projects.length).padStart(2, '0')}
               </span>
               <div className="drawer__nav">
                 <button type="button" onClick={() => step(-1)} aria-label="Previous project">
@@ -107,7 +123,9 @@ export default function CaseDrawer() {
                 transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
                 className="drawer__body"
               >
-                <p className="drawer__kind mono">{p.kind}</p>
+                <p className="drawer__kind mono">
+                  {p.kind} <span className="drawer__context">— {p.context}</span>
+                </p>
                 <h3 id="case-title" className="drawer__title">
                   {p.title}
                 </h3>
@@ -138,11 +156,15 @@ export default function CaseDrawer() {
                 </div>
 
                 <div className="drawer__cta">
-                  <Magnetic>
-                    <a href={p.url} target="_blank" rel="noopener noreferrer" className="btn btn--accent" data-cursor="Let's go">
-                      <span>{p.urlLabel}</span> <span aria-hidden="true">↗</span>
-                    </a>
-                  </Magnetic>
+                  {p.url ? (
+                    <Magnetic>
+                      <a href={p.url} target="_blank" rel="noopener noreferrer" className="btn btn--accent" data-cursor="Let's go">
+                        <span>{p.urlLabel}</span> <span aria-hidden="true">↗</span>
+                      </a>
+                    </Magnetic>
+                  ) : (
+                    <p className="drawer__note mono">{p.note ?? 'Source available on request.'}</p>
+                  )}
                   <button type="button" className="btn btn--ghost" onClick={() => step(1)}>
                     Next: {projects[(index + 1) % projects.length].title} →
                   </button>

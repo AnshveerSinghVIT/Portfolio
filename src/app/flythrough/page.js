@@ -1,7 +1,13 @@
 import DynamicCanvasLayer from '@/components/DynamicCanvasLayer';
 import SmartAIChatWrapper from '@/components/SmartAIChatWrapper';
+import ViewToggle from '@/components/ViewToggle';
 
-export default function Home() {
+export const metadata = {
+  title: 'Anshveer Singh | 3D Flythrough',
+  alternates: { canonical: '/' },
+};
+
+export default function Flythrough() {
   return (
     <main className="relative w-full min-h-screen">
       
@@ -9,6 +15,7 @@ export default function Home() {
       <DynamicCanvasLayer />
       
       <SmartAIChatWrapper />
+      <ViewToggle current="flythrough" />
 
       {/* --- SEO LAYER (For Robots) --- 
           Hidden from view, but readable by search engines. 
@@ -63,7 +70,7 @@ export default function Home() {
           <h3>Professional Experience</h3>
           <article>
             <h4>Undergraduate Intern - Dell Technologies</h4>
-            <p>Starts June 2025</p>
+            <p>June – July 2026</p>
             <p>Secured from on-campus testing and interviews.</p>
           </article>
           <article>

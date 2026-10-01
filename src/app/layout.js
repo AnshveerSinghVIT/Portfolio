@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono, Instrument_Serif } from 'next/font/google';
 import DynamicFavicon from '@/components/DynamicFavicon';
 import './globals.css';
+import './sections.css';
 
 const sans = Geist({ subsets: ['latin'], variable: '--font-sans' });
 const mono = Geist_Mono({ subsets: ['latin'], variable: '--font-mono' });

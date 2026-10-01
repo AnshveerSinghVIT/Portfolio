@@ -66,7 +66,7 @@ export default function Arsenal() {
       <div className="arsenal__inner">
         <aside className="arsenal__side">
           <div className="label mono">
-            <span>(02)</span>
+            <span>(03)</span>
             <span>Arsenal</span>
           </div>
           <h2 id="arsenal-title" className="display display--sm">
