@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { sections } from '@/lib/data';
-import { emit, scrollToId } from '@/lib/scroll';
+import { emit, revealResume, scrollToId } from '@/lib/scroll';
 import LocalTime from './LocalTime';
 
 export default function Nav() {
@@ -86,6 +86,24 @@ export default function Nav() {
           <span className="nav__time mono">
             BLR <LocalTime />
           </span>
+          <a
+            href="#resume"
+            className="nav__resume"
+            onClick={(e) => {
+              e.preventDefault();
+              revealResume();
+            }}
+            data-cursor="Find it"
+          >
+            <span className="nav__resume-icon" aria-hidden="true">
+              <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M4 1.75h5.5L12.25 4.5v9.75H4z" />
+                <path d="M9.25 1.75V4.75h3" />
+                <path d="M6.25 8.25h3.5M6.25 10.75h3.5" />
+              </svg>
+            </span>
+            Résumé
+          </a>
           <button type="button" className="nav__cmd" onClick={() => emit('palette:open')} data-cursor="Explore">
             <span className="nav__cmd-key" aria-hidden="true">⌘K</span>
             <span className="nav__cmd-text">Menu</span>

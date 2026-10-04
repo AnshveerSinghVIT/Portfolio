@@ -1,10 +1,28 @@
 'use client';
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
+
+const TOPICS = [
+  { id: 'role', label: 'A role on my team', subject: 'Role on our team', prompt: 'Hi Anshveer — we’re building… and think you’d be a great fit for…' },
+  { id: 'collab', label: 'Collaboration', subject: 'Collaboration idea', prompt: 'Hi Anshveer — I’m working on… and would love to collaborate on…' },
+  { id: 'project', label: 'Project idea', subject: 'Project idea', prompt: 'Hi Anshveer — I have an idea for…' },
+  { id: 'hello', label: 'Just saying hi', subject: 'Hello from your portfolio', prompt: 'Hi Anshveer…' },
+];
 
 export default function EmailForm({ onDone, title = 'Send Anshveer a message', className = 'ai__form' }) {
   const [state, setState] = useState('idle');
   const [error, setError] = useState('');
+  const [topic, setTopic] = useState(null);
+  const [subject, setSubject] = useState('');
+  const groupId = useId();
+  const current = TOPICS.find((t) => t.id === topic);
+
+  const pick = (t) => {
+    const next = topic === t.id ? null : t.id;
+    setTopic(next);
+    if (!subject || TOPICS.some((x) => x.subject === subject)) setSubject(next ? t.subject : '');
+  };
+
   const submit = async (e) => {
     e.preventDefault();
     const form = e.currentTarget;
@@ -17,6 +35,8 @@ export default function EmailForm({ onDone, title = 'Send Anshveer a message', c
         throw new Error(body.error);
       }
       form.reset();
+      setTopic(null);
+      setSubject('');
       setState('idle');
       onDone('Sent! Anshveer will get back to you soon — check your inbox for a confirmation.');
     } catch (err) {
@@ -24,6 +44,7 @@ export default function EmailForm({ onDone, title = 'Send Anshveer a message', c
       setState('error');
     }
   };
+
   return (
     <form className={className} onSubmit={submit}>
       <p className="ai__form-title mono">{title}</p>
@@ -34,15 +55,36 @@ export default function EmailForm({ onDone, title = 'Send Anshveer a message', c
       </label>
       <label>
         <span>Subject</span>
-        <input name="subject" type="text" autoComplete="off" placeholder="Internship opportunity…" />
+        <input
+          name="subject"
+          type="text"
+          autoComplete="off"
+          maxLength={150}
+          placeholder="Collaboration idea…"
+          value={subject}
+          onChange={(e) => setSubject(e.target.value)}
+        />
       </label>
+      <fieldset className="topics" aria-labelledby={groupId}>
+        <span id={groupId} className="topics__legend">
+          What’s it about?
+        </span>
+        <div className="topics__list">
+          {TOPICS.map((t) => (
+            <button key={t.id} type="button" className="topics__chip" aria-pressed={topic === t.id} onClick={() => pick(t)}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </fieldset>
       <label>
         <span>Message</span>
         <textarea
           name="message"
           required
           rows={3}
-          placeholder="Hi Anshveer…"
+          maxLength={5000}
+          placeholder={current?.prompt ?? 'Hi Anshveer…'}
           onKeyDown={(e) => (e.metaKey || e.ctrlKey) && e.key === 'Enter' && e.currentTarget.form.requestSubmit()}
         />
       </label>

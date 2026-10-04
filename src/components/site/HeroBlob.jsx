@@ -233,6 +233,10 @@ export default function HeroBlob() {
     const pointer = { x: 0, y: 0, vx: 0, vy: 0, lx: 0, ly: 0 };
     let aspect = 1;
     let mobile = false;
+    // On small screens the blob centres on, and sizes to, the free "stage" between the hero's top row and intro text.
+    const fit = { x: 0, y: 0, scale: 0.98 };
+    const stage = canvas.closest('.hero')?.querySelector('[data-blob-fit]');
+    let placed = false;
 
     const resize = () => {
       const w = canvas.clientWidth;
@@ -244,9 +248,27 @@ export default function HeroBlob() {
       aspect = w / Math.max(1, h);
       mobile = w < 760;
       gl.uniformMatrix4fv(U.uProjection, false, perspective(FOV, aspect, 0.1, 100));
+      const sr = mobile && stage ? stage.getBoundingClientRect() : null;
+      if (sr && sr.height > 0) {
+        const cr = canvas.getBoundingClientRect();
+        const worldPerPx = (2 * CAM_Z * Math.tan(FOV / 2)) / Math.max(1, h);
+        fit.x = (sr.left + sr.width / 2 - (cr.left + cr.width / 2)) * worldPerPx;
+        fit.y = -(sr.top + sr.height / 2 - (cr.top + cr.height / 2)) * worldPerPx;
+        fit.scale = (0.74 * Math.min(sr.width, sr.height) * worldPerPx) / 2.5;
+      } else {
+        fit.x = 0;
+        fit.y = 0;
+        fit.scale = 0.98;
+      }
+      if (!placed) {
+        state.x = fit.x;
+        state.y = fit.y;
+        placed = true;
+      }
     };
     const ro = new ResizeObserver(resize);
     ro.observe(canvas);
+    if (stage) ro.observe(stage);
     resize();
 
     const move = (e) => {
@@ -290,11 +312,11 @@ export default function HeroBlob() {
       state.my += (p.y - state.my) * 0.04;
 
       const scrollT = Math.min(1, window.scrollY / innerHeight);
-      state.x = lerp(state.x, p.x * 0.14, 0.05);
-      state.y = lerp(state.y, p.y * 0.1 + scrollT * 0.9, 0.05);
+      state.x = lerp(state.x, fit.x + p.x * 0.14, 0.05);
+      state.y = lerp(state.y, fit.y + p.y * 0.1 + scrollT * 0.9, 0.05);
       state.ry += delta * 0.08 + p.vx * 0.4;
       state.rx = lerp(state.rx, -p.y * 0.3, 0.05);
-      const target = (mobile ? 0.62 : 0.98) * (1 - scrollT * 0.3) * (1 + pulseAmt * 0.06);
+      const target = fit.scale * (1 - scrollT * 0.3) * (1 + pulseAmt * 0.06);
       state.s = lerp(state.s, target, 0.08);
 
       gl.uniform1f(U.uTime, state.time);

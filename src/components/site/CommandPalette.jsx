@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { profile, projects, sections } from '@/lib/data';
-import { emit, lockScroll, scrollToId } from '@/lib/scroll';
+import { emit, lockScroll, revealResume, scrollToId } from '@/lib/scroll';
 
 async function copyEmail() {
   try {
@@ -22,6 +22,7 @@ function buildCommands() {
     { id: 'ask-ai', group: 'Actions', label: 'Ask my AI', hint: 'chat', run: () => emit('ai:ask') },
     { id: 'copy-email', group: 'Actions', label: 'Copy email address', hint: profile.email, run: copyEmail },
     { id: 'resume', group: 'Actions', label: 'Open résumé', hint: 'PDF', run: open(profile.resume) },
+    { id: 'find-resume', group: 'Actions', label: 'Find the résumé on this page', hint: 'Contact', run: revealResume },
     { id: 'mail', group: 'Actions', label: 'Write an email', hint: 'mailto', run: () => (window.location.href = `mailto:${profile.email}`) },
     ...profile.socials.map((s) => ({ id: `social-${s.label}`, group: 'Elsewhere', label: s.label, hint: s.handle, run: open(s.url) })),
   ];

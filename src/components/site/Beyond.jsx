@@ -60,7 +60,7 @@ function ChessBoard() {
 
 export default function Beyond() {
   return (
-    <section className="beyond" aria-labelledby="beyond-title">
+    <section id="beyond" className="beyond" aria-labelledby="beyond-title">
       <div className="section-head">
         <div className="label mono">
           <span>(05)</span>

@@ -103,19 +103,6 @@ export default function Hero() {
     <section id="top" ref={root} className="hero" aria-labelledby="hero-title" onPointerDown={pulse}>
       <HeroBlob />
 
-      <div className="hero__ring" aria-hidden="true">
-        <svg viewBox="0 0 600 600">
-          <defs>
-            <path id="ring-path" d="M300,300 m-262,0 a262,262 0 1,1 524,0 a262,262 0 1,1 -524,0" />
-          </defs>
-          <text>
-            <textPath href="#ring-path" textLength="1640">
-              {RING + RING}
-            </textPath>
-          </text>
-        </svg>
-      </div>
-
       <div className="hero__meta mono">
         <span className="reveal" style={{ '--d': '0.1s' }}>
           Portfolio — Edition 2026
@@ -125,22 +112,41 @@ export default function Hero() {
         </span>
       </div>
 
-      <h1 id="hero-title" className="hero__name">
-        <span className="hero__line hero__line--sans">
-          <PressureLetters text={profile.first} />
-        </span>
-        <span className="hero__line hero__line--serif">
-          {profile.last.split('').map((ch, i) => (
-            <span key={i} className="char" style={{ '--i': profile.first.length + i }}>
-              <span>{ch}</span>
-            </span>
-          ))}
-          <span className="char hero__dot" style={{ '--i': profile.first.length + profile.last.length }}>
-            <span>.</span>
+      <div className="hero__stage" data-blob-fit>
+        <div className="hero__ring" aria-hidden="true">
+          <svg viewBox="0 0 600 600">
+            <defs>
+              <path id="ring-path" d="M300,300 m-262,0 a262,262 0 1,1 524,0 a262,262 0 1,1 -524,0" />
+            </defs>
+            <text className="hero__ring-text hero__ring-text--lg">
+              <textPath href="#ring-path" textLength="1640">
+                {RING + RING}
+              </textPath>
+            </text>
+            <text className="hero__ring-text hero__ring-text--sm">
+              <textPath href="#ring-path" textLength="1640">
+                {RING}
+              </textPath>
+            </text>
+          </svg>
+        </div>
+        <h1 id="hero-title" className="hero__name">
+          <span className="hero__line hero__line--sans">
+            <PressureLetters text={profile.first} />
           </span>
-        </span>
-        <span className="sr-only"> — {profile.role}</span>
-      </h1>
+          <span className="hero__line hero__line--serif">
+            {profile.last.split('').map((ch, i) => (
+              <span key={i} className="char" style={{ '--i': profile.first.length + i }}>
+                <span>{ch}</span>
+              </span>
+            ))}
+            <span className="char hero__dot" style={{ '--i': profile.first.length + profile.last.length }}>
+              <span>.</span>
+            </span>
+          </span>
+          <span className="sr-only"> — {profile.role}</span>
+        </h1>
+      </div>
 
       <div className="hero__foot">
         <p className="hero__intro reveal" style={{ '--d': '1.05s' }}>

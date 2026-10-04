@@ -37,7 +37,7 @@ export default function Contact() {
   };
 
   const links = [
-    { label: 'Résumé', sub: 'PDF', url: profile.resume },
+    { id: 'resume', label: 'Résumé', sub: 'View PDF', url: profile.resume },
     ...profile.socials.slice(0, 2).map((s) => ({ label: s.label, sub: s.handle, url: s.url })),
     { label: 'Phone', sub: profile.phone, url: `tel:${profile.phone.replace(/\s/g, '')}` },
   ];
@@ -79,7 +79,7 @@ export default function Contact() {
       <ul className="contact__links">
         {links.map((l) => (
           <li key={l.label}>
-            <a href={l.url} target={l.url.startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer" className="contact__link">
+            <a id={l.id} href={l.url} target={l.url.startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer" className="contact__link" data-featured={l.id === 'resume' || undefined}>
               <span className="contact__link-label">{l.label}</span>
               <span className="contact__link-sub mono">{l.sub}</span>
               <span className="contact__link-arrow" aria-hidden="true">
