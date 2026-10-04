@@ -1,0 +1,11 @@
+{
+  "name": "atlas-build",
+  "private": true,
+  "type": "module",
+  "description": "Embeds portfolio content with all-MiniLM-L6-v2 and lays it out with UMAP. Run: npm install && npm run build",
+  "scripts": { "build": "node build.mjs" },
+  "dependencies": {
+    "@huggingface/transformers": "^4.3.0",
+    "umap-js": "^1.4.0"
+  }
+}

@@ -1,10 +1,11 @@
 'use client';
 
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { projects } from '@/lib/data';
 import { emit, lockScroll, scrollToId } from '@/lib/scroll';
 import EmailForm from './EmailForm';
+import { parseReply, RichText } from './chatFormat';
 
 const STORE = 'as-ai-chat-v2';
 const GREETING = 'Hi — I’m Anshveer’s AI. Ask me about his work, skills or experience, and I’ll point you to the right part of the page.';
@@ -38,82 +39,14 @@ function guessNav(text) {
   return FALLBACK_NAV.find(([, keys]) => keys.some((k) => t.includes(k)))?.[0] ?? null;
 }
 
-function normalise(s) {
-  return s.replace(/[\u2010\u2011]/g, '-').replace(/[\u00a0\u202f]/g, ' ').replace(/(\d) %/g, '$1%');
-}
-
-// Strips control tags; while streaming, hides a half-received "[[" tag so it never flashes on screen.
-function parseReply(raw, streaming) {
-  const tags = [...raw.matchAll(/\[\[(nav|next|error)(?::([^\]]*))?\]\]/g)];
-  let text = raw.replace(/\[\[[\s\S]*?\]\]/g, '');
-  if (streaming) {
-    const open = text.lastIndexOf('[[');
-    if (open !== -1) text = text.slice(0, open);
-    text = text.replace(/\[$/, '');
-  }
-  const nav = tags.find((t) => t[1] === 'nav')?.[2]?.trim().toLowerCase();
-  const next = tags
-    .find((t) => t[1] === 'next')?.[2]
-    ?.split('|')
-    .map((q) => q.trim())
-    .filter(Boolean)
-    .slice(0, 2);
-  return { text: normalise(text).trim(), nav: SECTION_IDS[nav] ? nav : null, next: next ?? [], error: tags.some((t) => t[1] === 'error') };
-}
+const parseAsk = (raw, streaming) => {
+  const r = parseReply(raw, streaming);
+  return { ...r, nav: SECTION_IDS[r.nav] ? r.nav : null };
+};
 
 function mentionedProjects(text) {
   const t = text.toLowerCase();
   return projects.filter((p) => (PROJECT_ALIASES[p.id] ?? [p.title.toLowerCase()]).some((a) => t.includes(a))).slice(0, 3);
-}
-
-const INLINE = /(\*\*[^*\n]+\*\*|[\w.+-]+@[\w-]+(?:\.[\w-]+)+|https?:\/\/[^\s)]+)/g;
-
-function Inline({ text }) {
-  return text.split(INLINE).map((part, i) => {
-    if (!part) return null;
-    if (part.startsWith('**') && part.endsWith('**')) return <strong key={i}>{part.slice(2, -2)}</strong>;
-    if (/^[\w.+-]+@[\w-]+(\.[\w-]+)+$/.test(part)) return <a key={i} href={`mailto:${part}`}>{part}</a>;
-    if (/^https?:\/\//.test(part)) {
-      return (
-        <a key={i} href={part} target="_blank" rel="noopener noreferrer">
-          {part.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}
-        </a>
-      );
-    }
-    return <Fragment key={i}>{part}</Fragment>;
-  });
-}
-
-function RichText({ text }) {
-  const blocks = [];
-  for (const line of text.split('\n')) {
-    const trimmed = line.trim();
-    if (!trimmed) continue;
-    const bullet = /^[-•*]\s+/.test(trimmed);
-    const content = trimmed.replace(/^[-•*]\s+/, '');
-    const last = blocks[blocks.length - 1];
-    if (bullet) {
-      if (last?.type === 'ul') last.items.push(content);
-      else blocks.push({ type: 'ul', items: [content] });
-    } else {
-      blocks.push({ type: 'p', text: content });
-    }
-  }
-  return blocks.map((b, i) =>
-    b.type === 'ul' ? (
-      <ul key={i}>
-        {b.items.map((it, j) => (
-          <li key={j}>
-            <Inline text={it} />
-          </li>
-        ))}
-      </ul>
-    ) : (
-      <p key={i}>
-        <Inline text={b.text} />
-      </p>
-    )
-  );
 }
 
 function loadChat() {
@@ -160,7 +93,7 @@ export default function AskAI() {
       if (!q || abortRef.current) return;
       const history = messagesRef.current
         .filter((m) => (m.role === 'user' || m.role === 'assistant') && !m.error && m.id !== 'greeting')
-        .map((m) => ({ role: m.role, content: parseReply(m.content, false).text }));
+        .map((m) => ({ role: m.role, content: parseAsk(m.content, false).text }));
       const userMsg = { id: uid(), role: 'user', content: q };
       const botId = uid();
       setMessages((list) => [...list, userMsg, { id: botId, role: 'assistant', content: '', streaming: true, question: q }]);
@@ -195,7 +128,7 @@ export default function AskAI() {
           raw += decoder.decode(value, { stream: true });
           patch(botId, () => ({ content: raw }));
         }
-        const parsed = parseReply(raw, false);
+        const parsed = parseAsk(raw, false);
         if (parsed.error && !parsed.text) {
           patch(botId, () => ({ content: 'I lost my train of thought mid-answer.', error: true, streaming: false }));
           return;
@@ -279,7 +212,7 @@ export default function AskAI() {
   };
 
   const last = messages[messages.length - 1];
-  const lastParsed = last?.role === 'assistant' && !last.streaming && !last.error ? parseReply(last.content, false) : null;
+  const lastParsed = last?.role === 'assistant' && !last.streaming && !last.error ? parseAsk(last.content, false) : null;
   const suggestions = messages.length === 1 ? STARTERS : lastParsed?.next ?? [];
   const isSheet = typeof window !== 'undefined' && window.matchMedia('(max-width: 760px)').matches;
 
@@ -358,7 +291,7 @@ export default function AskAI() {
                     </li>
                   );
                 }
-                const parsed = parseReply(m.content, m.streaming);
+                const parsed = parseAsk(m.content, m.streaming);
                 const related = m.streaming || m.error ? [] : mentionedProjects(parsed.text);
                 const nav = m.error ? m.fallbackNav : parsed.nav;
                 return (

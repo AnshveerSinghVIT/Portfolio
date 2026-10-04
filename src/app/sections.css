@@ -630,3 +630,11 @@ html { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   .ai__foot { display: none; }
   .ai__row { max-width: 96%; }
 }
+
+/* ---------- View toggle: three views ---------- */
+.view-toggle__short { display: none; }
+.view-toggle__new { margin-left: 6px; padding: 1px 6px; border-radius: 999px; background: var(--accent); color: var(--ink); font-family: var(--font-mono), monospace; font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; }
+@media (max-width: 760px) {
+  .view-toggle__long { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .view-toggle__short { display: inline; }
+}

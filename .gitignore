@@ -40,3 +40,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# atlas build tooling (separate install)
+/scripts/atlas/node_modules
+/scripts/atlas/.cache

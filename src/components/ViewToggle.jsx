@@ -3,13 +3,15 @@
 import { useEffect, useRef, useState } from 'react';
 
 const VIEWS = [
-  { id: 'editorial', href: '/', label: 'Editorial' },
-  { id: 'flythrough', href: '/flythrough', label: '3D Flythrough' },
+  { id: 'editorial', href: '/', label: 'Editorial', short: 'Editorial', arrive: 'Back to editorial' },
+  { id: 'atlas', href: '/atlas', label: 'Atlas', short: 'Atlas', arrive: 'Unfolding the atlas', isNew: true },
+  { id: 'flythrough', href: '/flythrough', label: '3D Flythrough', short: '3D', arrive: 'Entering the flythrough' },
 ];
 const KEY = 'as-view-wipe';
 
 export default function ViewToggle({ current }) {
   const [wipe, setWipe] = useState(null);
+  const [target, setTarget] = useState(null);
   const wipeRef = useRef(null);
 
   useEffect(() => {
@@ -44,6 +46,7 @@ export default function ViewToggle({ current }) {
     }
     const r = e.currentTarget.getBoundingClientRect();
     const origin = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    setTarget(view);
     setWipe(origin);
     try {
       sessionStorage.setItem(KEY, JSON.stringify(origin));
@@ -63,7 +66,11 @@ export default function ViewToggle({ current }) {
             className="view-toggle__opt"
             data-cursor={v.id === current ? undefined : 'Switch'}
           >
-            {v.label}
+            <span className="view-toggle__long">{v.label}</span>
+            <span className="view-toggle__short" aria-hidden="true">
+              {v.short}
+            </span>
+            {v.isNew && v.id !== current && <span className="view-toggle__new">new</span>}
           </a>
         ))}
       </nav>
@@ -74,7 +81,7 @@ export default function ViewToggle({ current }) {
         data-state={wipe ? 'in' : undefined}
         style={wipe ? { '--x': `${wipe.x}px`, '--y': `${wipe.y}px` } : undefined}
       >
-        <span className="view-wipe__label">{wipe ? (current === 'editorial' ? 'Entering the flythrough' : 'Back to editorial') : ''}</span>
+        <span className="view-wipe__label">{wipe && target ? target.arrive : ''}</span>
       </div>
     </>
   );
